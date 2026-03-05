@@ -1,0 +1,78 @@
+# EXPEDIENTE TÉCNICO Y ARQUITECTÓNICO DE SOFTWARE
+## SISTEMA DE ALERTA TEMPRANA Y CONTROL DE ASISTENCIA QR (SATA-QR)
+
+[cite_start]**Entidad:** Unidad de Gestión Educativa Local (UGEL) Huacaybamba[cite: 4, 6].
+**Especialista a Cargo:** Informática y Sistemas.
+[cite_start]**Periodo de Ejecución:** Año lectivo 2026[cite: 16].
+[cite_start]**Alcance:** 20 Instituciones Educativas (I.E.) del nivel secundario[cite: 78].
+
+---
+
+### 1. VISIÓN GENERAL Y OBJETIVOS
+[cite_start]El sistema SATA-QR es una plataforma web centralizada diseñada para el seguimiento en tiempo real de la asistencia estudiantil mediante códigos QR[cite: 24]. [cite_start]Su objetivo principal es actuar como un motor de alerta temprana para identificar a estudiantes en situación de vulnerabilidad (trabajo agrícola, comercial) [cite: 44] [cite_start]y brindar atención oportuna mediante el equipo de la UGEL y aliados estratégicos[cite: 24]. [cite_start]La meta del proyecto es reducir en un 90% el riesgo de deserción escolar[cite: 74].
+
+### 2. ARQUITECTURA DEL SISTEMA Y STACK TECNOLÓGICO
+* **Framework Backend:** Laravel 12 (PHP) con arquitectura MVC y Clean Code.
+* **Motor de Base de Datos:** MySQL / PostgreSQL (Normalizada a 3NF, optimizada con índices B-Tree).
+* **Frontend y UI:** Plantilla Tailwick (Tailwind CSS) + Componentes Blade + Alpine.js/Vanilla JS.
+* **Estrategia Multi-Tenant:** `stancl/tenancy` configurado en modo *Single Database*. Garantiza el aislamiento de datos por institución utilizando la llave `tenant_id` sin multiplicar los costos de infraestructura.
+* **Motor de Autenticación Web:** `laravel/fortify` (Headless), permitiendo usar los formularios nativos de Tailwick sin conflictos de CSS.
+* **Autenticación de Dispositivos (Punto de Control):** `laravel/sanctum` para emitir API Tokens seguros a las tablets/laptops de las puertas, previniendo escaneos remotos fraudulentos.
+* **Contingencia Offline:** Implementación PWA (*Progressive Web App*) mediante Vite. Si el WiFi falla, la vista del escáner guarda los registros en el `localStorage` del navegador y sincroniza al recuperar la red.
+
+### 3. ECOSISTEMA DE PAQUETES (DEPENDENCIAS CORE)
+Para evitar reinventar la rueda y garantizar seguridad de grado empresarial, se utilizarán los siguientes paquetes oficiales y comunitarios:
+1. `spatie/laravel-permission`: Control de Acceso Basado en Roles (RBAC) cacheado.
+2. `spatie/laravel-activitylog`: Auditoría legal e inmutable de cambios en el sistema.
+3. `maatwebsite/excel`: Importación masiva de estudiantes desde formatos SIAGIE.
+4. [cite_start]`revolution/laravel-google-sheets`: Sincronización automática de reportes con Google Sheets[cite: 24, 68].
+5. `simplesoftwareio/simple-qrcode`: Generación de códigos QR en formato SVG.
+6. `spatie/laravel-pdf`: Renderizado moderno (vía Browsershot/Puppeteer) de los fotochecks en formato A4.
+
+### 4. REQUERIMIENTOS FUNCIONALES (MÓDULOS)
+
+#### Módulo 1: Seguridad y Auditoría (RBAC)
+* **RF-1.1:** Autenticación y autorización basada en roles granulares: SuperAdmin, Director I.E., Docente PIP/Auxiliar, Especialista UGEL y Aliado Estratégico.
+* **RF-1.2:** Aislamiento estricto de Tenant: Un usuario solo visualizará e interactuará con la información de su propia I.E.
+* **RF-1.3:** Log de Auditoría automático que registre usuario, marca de tiempo, dirección IP y acción ante cualquier modificación manual de asistencia.
+
+#### Módulo 2: Gestión Institucional y Credencialización
+* **RF-2.1:** Interfaz para importar estudiantes, grados y secciones mediante archivos CSV/Excel.
+* **RF-2.2:** Generación en segundo plano de un UUID (identificador único universal) encriptado por cada estudiante registrado.
+* **RF-2.3:** Generación y descarga de archivos PDF estructurados en formato A4 que contengan los fotochecks (carnets) institucionales listos para impresión, incluyendo foto, datos básicos y código QR.
+* **RF-2.4:** Capacidad de invalidar (regenerar UUID) un carnet perdido, bloqueando instantáneamente su uso en los puntos de control.
+
+#### Módulo 3: Punto de Control de Asistencia (Escáner)
+* [cite_start]**RF-3.1:** Interfaz web exclusiva (Modo Kiosko) que captura la cámara del dispositivo (`html5-qrcode`) para lectura continua, operada por el docente PIP[cite: 67].
+* **RF-3.2:** Validación visual en < 1.5 segundos: Pantalla verde con foto (Ingreso exitoso) o pantalla roja (QR inválido, duplicado o ajeno a la I.E.).
+* **RF-3.3:** Algoritmo *Cooldown* Antifraude: Bloqueo temporal de un QR recién escaneado para evitar registros dobles por préstamo de carnet.
+* **RF-3.4:** Registro manual de asistencia justificada/injustificada para estudiantes sin carnet.
+
+#### Módulo 4: Motor Lógico de Alertas Tempranas
+* **RF-4.1:** Ejecución de tareas programadas (*Cron Jobs*) evaluando la asistencia diaria contra el calendario académico oficial de la UGEL.
+* **RF-4.2:** Emisión de "Alerta Amarilla" al panel del Docente PIP/Tutor ante inasistencias intermitentes o recurrentes iniciales.
+* **RF-4.3:** Escalamiento automático a "Alerta Roja" hacia el panel de Especialistas UGEL al alcanzar un umbral crítico de vulnerabilidad.
+
+#### Módulo 5: Intervención Multisectorial
+* [cite_start]**RF-5.1:** Módulo de gestión de casos para los psicólogos y especialistas de la UGEL, permitiendo documentar acciones de soporte[cite: 69].
+* [cite_start]**RF-5.2:** Panel de derivación externa hacia Aliados Estratégicos (Policía Nacional, Centro de Emergencia Mujer, Centros de Salud, Fiscalía)[cite: 71].
+* [cite_start]**RF-5.3:** Seguimiento de estados de intervención (Iniciada, Derivada, Concluida) para evaluar la evolución del bienestar socioemocional[cite: 72].
+
+#### Módulo 6: Integración y Reportes
+* **RF-6.1:** Dashboard gerencial global en tiempo real para la Dirección y Jefaturas de la UGEL.
+* [cite_start]**RF-6.2:** Integración mediante API con Google Sheets para la generación y actualización automática de reportes estadísticos de inasistencia[cite: 68].
+
+### 5. MODELO ENTIDAD-RELACIÓN (MER) FÍSICO Y NORMALIZADO
+*Nota: Las tablas de roles y permisos son gestionadas dinámicamente por `spatie/laravel-permission`.*
+
+1. **`tenant_instituciones`**: `id`, `nombre`, `codigo_modular` (UNIQUE).
+2. **`users`**: `id`, `tenant_id` (FK Nullable), `dni` (UNIQUE), `nombres_apellidos`, `email` (UNIQUE), `password`.
+3. **`anios_lectivos`**: `id`, `nombre_anio`, `fecha_inicio`, `fecha_fin`, `estado`.
+4. **`calendario_feriados`**: `id`, `tenant_id` (FK Nullable), `fecha`, `descripcion`.
+5. **`configuracion_asistencia`**: `tenant_id` (FK), `hora_entrada_regular`, `minutos_tolerancia`.
+6. **`secciones`**: `id`, `tenant_id` (FK), `tutor_id` (FK -> users.id), `grado`, `letra_seccion`. (Índice Compuesto UNIQUE: tenant_id + grado + letra).
+7. **`estudiantes`**: `id`, `tenant_id` (FK), `dni` (UNIQUE), `nombres`, `apellidos`, `qr_uuid` (CHAR 36, UNIQUE INDEX).
+8. **`matriculas`**: `id`, `estudiante_id` (FK), `seccion_id` (FK), `anio_lectivo_id` (FK), `estado`.
+9. **`asistencias_diarias`**: `id`, `matricula_id` (FK), `registrado_por` (FK -> users.id), `fecha_registro` (Date), `hora_ingreso` (Time), `estado_asistencia` (ENUM). (Índice Compuesto UNIQUE: matricula_id + fecha_registro).
+10. **`alertas_tempranas`**: `id`, `matricula_id` (FK), `nivel_riesgo` (ENUM), `motivo_acumulado`, `estado_atencion` (ENUM), `fecha_emision` (Date).
+11. **`intervenciones_multisectoriales`**: `id`, `alerta_id` (FK), `especialista_id` (FK), `aliado_estrategico_id` (FK Nullable), `descripcion_accion`, `fecha_intervencion` (Date), `resultado_seguimiento`.
