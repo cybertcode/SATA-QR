@@ -72,7 +72,7 @@
         <div class="relative z-10 flex items-center justify-center min-h-screen px-10 py-14 grow">
             <div>
                 <a class="" href="#">
-                    <img alt="SATA Logo" class="h-10 mb-14 mx-auto block" src="/images/logo-light.png"/>
+                    <img alt="SATA Logo" class="h-16 mb-14 mx-auto block" src="/images/logo-ugel.png"/>
                 </a>
                 <img alt="Educación Huacaybamba" class="mx-auto rounded-xl block object-cover w-md shadow-2xl" src="/images/auth-modern.png"/>
                 <div class="mt-10 text-center">

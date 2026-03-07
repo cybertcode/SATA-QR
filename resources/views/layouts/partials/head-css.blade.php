@@ -3,7 +3,7 @@
 <script>
     (function() {
         const html = document.documentElement;
-        const storageKey = "__TAILWICK_CONFIG__";
+        const storageKey = "__SATA_QR_CONFIG__";
         const savedConfig = sessionStorage.getItem(storageKey);
 
         // Default config

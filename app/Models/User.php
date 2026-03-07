@@ -21,6 +21,8 @@ class User extends Authenticatable
         'role',
         'dni',
         'cargo',
+        'is_active',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -33,6 +35,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -44,20 +48,30 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
-    // --- SISTEMA DE ROLES NATIVO (SATA-GUARD) ---
+    // --- HELPERS DE ROL (delegados a spatie/permission) ---
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'SuperAdmin';
+        return $this->hasRole('SuperAdmin');
     }
 
     public function isDirector(): bool
     {
-        return $this->role === 'Director';
+        return $this->hasRole('Director');
+    }
+
+    public function isDocente(): bool
+    {
+        return $this->hasRole('Docente');
+    }
+
+    public function isAdministrador(): bool
+    {
+        return $this->hasRole('Administrador');
     }
 
     public function isAuxiliar(): bool
     {
-        return $this->role === 'Auxiliar';
+        return $this->hasRole('Auxiliar');
     }
 }

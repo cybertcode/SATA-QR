@@ -10,9 +10,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
+        "blade-ui-kit/blade-heroicons": "^2.6",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "livewire/livewire": "^3.7",
         "maatwebsite/excel": "*",
+        "rappasoft/laravel-livewire-tables": "^3.7",
         "revolution/laravel-google-sheets": "*",
         "simplesoftwareio/simple-qrcode": "*",
         "spatie/laravel-activitylog": "*",

@@ -11,10 +11,9 @@ class CheckRole
     /**
      * Manejar la solicitud entrante.
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!$request->user() || $request->user()->role !== $role) {
-            // Si el usuario no tiene el rol, redirigir con alerta
+        if (!$request->user() || !$request->user()->hasAnyRole($roles)) {
             return redirect()->route('root')->with('error', 'No tiene permisos para acceder a esta sección.');
         }
 

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             AliadoSeeder::class,
             TenantSeeder::class,
             UserSeeder::class,
+            RolesAndPermissionsSeeder::class,
             SataSeeder::class,
         ]);
     }

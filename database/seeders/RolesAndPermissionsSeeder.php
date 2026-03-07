@@ -32,7 +32,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // 2. CREACIÓN DE ROLES Y ASIGNACIÓN DE PERMISOS
-        
+
         // SuperAdmin: Control total regional (Especialista UGEL)
         $superAdmin = Role::firstOrCreate(['name' => 'SuperAdmin']);
         $superAdmin->syncPermissions(Permission::all());
@@ -49,6 +49,26 @@ class RolesAndPermissionsSeeder extends Seeder
             'interventions.log',
         ]);
 
+        // Administrador: Gestión administrativa (UGEL/IE)
+        $administrador = Role::firstOrCreate(['name' => 'Administrador']);
+        $administrador->syncPermissions([
+            'config.ie',
+            'students.view',
+            'students.manage',
+            'attendance.report',
+            'alerts.manage',
+        ]);
+
+        // Docente PIP: Seguimiento pedagógico y atención al estudiante
+        $docente = Role::firstOrCreate(['name' => 'Docente']);
+        $docente->syncPermissions([
+            'students.view',
+            'students.manage',
+            'attendance.scan',
+            'attendance.report',
+            'alerts.manage',
+        ]);
+
         // Auxiliar: Operación diaria (Escáner y visualización básica)
         $auxiliar = Role::firstOrCreate(['name' => 'Auxiliar']);
         $auxiliar->syncPermissions([
@@ -57,18 +77,20 @@ class RolesAndPermissionsSeeder extends Seeder
             'attendance.report',
         ]);
 
-        // 3. ASIGNACIÓN A USUARIOS EXISTENTES
-        
-        // SuperAdmin Maestro
-        $admin = User::where('email', 'admin@admin.com')->first();
-        if ($admin) {
-            $admin->assignRole($superAdmin);
-        }
+        // 3. SINCRONIZAR ROLES CON USUARIOS EXISTENTES
+        // Asigna el rol spatie según la columna 'role' de cada usuario
+        $roleMap = [
+            'SuperAdmin' => $superAdmin,
+            'Administrador' => $administrador,
+            'Director' => $director,
+            'Docente' => $docente,
+            'Auxiliar' => $auxiliar,
+        ];
 
-        // Director de Ejemplo (I.E. Huacaybamba)
-        $directorUser = User::where('email', 'director@ie-huacaybamba.edu.pe')->first();
-        if ($directorUser) {
-            $directorUser->assignRole($director);
+        foreach (User::whereNotNull('role')->cursor() as $user) {
+            if (isset($roleMap[$user->role])) {
+                $user->syncRoles([$roleMap[$user->role]]);
+            }
         }
     }
 }

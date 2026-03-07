@@ -10,6 +10,7 @@ use App\Http\Controllers\Sata\Alert\AlertController;
 use App\Http\Controllers\Sata\Alert\InterventionController;
 use App\Http\Controllers\Sata\Institution\SettingsController;
 use App\Http\Controllers\Sata\Attendance\ScannerController;
+use App\Http\Controllers\Sata\User\UserController;
 use App\Http\Controllers\Demo\RoutingController;
 
 /*
@@ -18,54 +19,68 @@ use App\Http\Controllers\Demo\RoutingController;
 |--------------------------------------------------------------------------
 */
 
-// Autenticación
+// Autenticación (Público)
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::get('debug-camera', function() { return view('sata.debug.camera'); });
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 // Sistema Protegido
 Route::group(['middleware' => 'auth'], function () {
-    
-    // Raíz: Escáner QR
+
+    // ─── ESCÁNER QR (Todos los roles autenticados) ───
     Route::get('/', [ScannerController::class, 'index'])->name('root');
     Route::post('/scan/process', [ScannerController::class, 'process'])->name('scan.process');
 
-    // Dashboards
-    Route::get('/dashboard/ugel', [DashboardController::class, 'index'])->name('dashboard.admin');
-    Route::get('/dashboard/ie', [DirectorDashboardController::class, 'index'])->name('dashboard.director');
+    // ─── PERFIL PERSONAL (Todos los roles) ───
+    Route::get('/perfil', [UserController::class, 'profile'])->name('profile');
+    Route::post('/perfil/update', [UserController::class, 'updateProfile'])->name('profile.update');
+
+    // ─── DASHBOARDS ───
     Route::get('/dashboard', function () {
-        if (auth()->user()->isSuperAdmin()) return redirect()->route('dashboard.admin');
+        if (auth()->user()->isSuperAdmin())
+            return redirect()->route('dashboard.admin');
         return redirect()->route('dashboard.director');
     })->name('dashboard');
 
-    // Módulo Institución
-    Route::get('/institucion/configuracion', [SettingsController::class, 'index'])->name('institution.settings');
-    Route::post('/institucion/cierre-asistencia', [SettingsController::class, 'closeDay'])->name('institution.close-day');
+    Route::get('/dashboard/ugel', [DashboardController::class, 'index'])
+        ->middleware('role:SuperAdmin')
+        ->name('dashboard.admin');
 
-    // Módulo Alumnado
-    Route::get('/estudiantes', [StudentController::class, 'index'])->name('students.index');
-    Route::get('/estudiantes/{id}', [StudentController::class, 'show'])->name('students.show');
-    Route::get('/estudiantes/{id}/qr', [StudentController::class, 'generateQr'])->name('students.qr');
-    Route::get('/estudiantes/siagie', [SiagieController::class, 'import'])->name('students.import');
-    Route::post('/estudiantes/siagie', [SiagieController::class, 'process'])->name('students.import.process');
+    Route::get('/dashboard/ie', [DirectorDashboardController::class, 'index'])
+        ->middleware('role:Director,Docente,Auxiliar')
+        ->name('dashboard.director');
 
-    // Módulo Alertas y Deserción
-    Route::get('/alertas', [AlertController::class, 'index'])->name('alerts.index');
-    Route::get('/intervenciones', [InterventionController::class, 'index'])->name('interventions.index');
+    // ─── MÓDULO USUARIOS (Solo SuperAdmin/Administrador) ───
+    Route::middleware('role:SuperAdmin,Administrador')->group(function () {
+        Route::get('/usuarios', [UserController::class, 'index'])->name('users.index');
+    });
 
-    // MÓDULO USUARIOS Y PERFIL
-    Route::get('/usuarios', function() { return view('sata.users.index'); })->name('users.index');
-    Route::get('/perfil', function() { return view('sata.users.profile'); })->name('profile');
+    // ─── MÓDULO INSTITUCIÓN (SuperAdmin + Director) ───
+    Route::middleware('role:SuperAdmin,Director')->group(function () {
+        Route::get('/institucion/configuracion', [SettingsController::class, 'index'])->name('institution.settings');
+        Route::post('/institucion/cierre-asistencia', [SettingsController::class, 'closeDay'])->name('institution.close-day');
+    });
 
-    // Rutas de compatibilidad con la plantilla (CLONADO TOTAL)
-    Route::get('demo', [RoutingController::class, 'index'])->name('demo.root');
-    Route::get('demo/{first}/{second}/{third}', [RoutingController::class, 'thirdLevel'])->name('demo.third');
-    Route::get('demo/{first}/{second}', [RoutingController::class, 'secondLevel'])->name('demo.second');
-    Route::get('demo/{any}', [RoutingController::class, 'root'])->name('demo.any');
-    
-    // Alias para compatibilidad de la plantilla original (si algún archivo interno usa 'second')
-    Route::get('{first}/{second}/{third}', [RoutingController::class, 'thirdLevel'])->name('third');
-    Route::get('{first}/{second}', [RoutingController::class, 'secondLevel'])->name('second');
-    Route::get('{any}', [RoutingController::class, 'root'])->name('any');
+    // ─── MÓDULO ALUMNADO (SuperAdmin + Director + Docente) ───
+    Route::middleware('role:SuperAdmin,Director,Docente')->group(function () {
+        Route::get('/estudiantes', [StudentController::class, 'index'])->name('students.index');
+        Route::get('/estudiantes/siagie', [SiagieController::class, 'import'])->name('students.import');
+        Route::post('/estudiantes/siagie', [SiagieController::class, 'process'])->name('students.import.process');
+        Route::get('/estudiantes/{id}', [StudentController::class, 'show'])->name('students.show');
+        Route::get('/estudiantes/{id}/qr', [StudentController::class, 'generateQr'])->name('students.qr');
+    });
+
+    // ─── MÓDULO ALERTAS Y DESERCIÓN (SuperAdmin + Director) ───
+    Route::middleware('role:SuperAdmin,Director')->group(function () {
+        Route::get('/alertas', [AlertController::class, 'index'])->name('alerts.index');
+        Route::get('/intervenciones', [InterventionController::class, 'index'])->name('interventions.index');
+    });
+
+    // ─── REFERENCIA VISUAL: Plantilla Demo (solo bajo /demo) ───
+    Route::prefix('demo')->group(function () {
+        Route::get('/', [RoutingController::class, 'index'])->name('demo.root');
+        Route::get('{first}/{second}/{third}', [RoutingController::class, 'thirdLevel'])->name('demo.third');
+        Route::get('{first}/{second}', [RoutingController::class, 'secondLevel'])->name('demo.second');
+        Route::get('{any}', [RoutingController::class, 'root'])->name('demo.any');
+    });
 });

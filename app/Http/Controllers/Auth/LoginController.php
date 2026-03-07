@@ -30,8 +30,10 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
+            Auth::user()->update(['last_login_at' => now()]);
+
             // Redirección profesional según el rol o destino previo
-            return redirect()->intended(route('root'));
+            return redirect()->intended(route('dashboard'));
         }
 
         throw ValidationException::withMessages([
