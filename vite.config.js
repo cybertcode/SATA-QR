@@ -3,6 +3,11 @@ import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+    server: {
+        host: 'qr.test',
+        port: 8080,
+        strictPort: true,
+    },
     plugins: [
         laravel({
             input: [

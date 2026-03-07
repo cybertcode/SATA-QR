@@ -11,7 +11,14 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "*",
+        "revolution/laravel-google-sheets": "*",
+        "simplesoftwareio/simple-qrcode": "*",
+        "spatie/laravel-activitylog": "*",
+        "spatie/laravel-pdf": "*",
+        "spatie/laravel-permission": "*",
+        "stancl/tenancy": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
