@@ -48,10 +48,7 @@ class RoleService
      */
     public function delete(Role $role): void
     {
-        DB::transaction(function () use ($role) {
-            $role->users()->detach();
-            $role->delete();
-        });
+        $role->delete();
     }
 
     /**

@@ -141,6 +141,11 @@ class RoleManager extends Component
             return;
         }
 
+        if ($role->users()->count() > 0) {
+            $this->dispatch('swal', icon: 'error', title: 'No se puede eliminar un rol con usuarios activos.', text: 'Primero reasigne o retire los usuarios de este rol.');
+            return;
+        }
+
         $roleService->delete($role);
 
         $this->computeStats();
