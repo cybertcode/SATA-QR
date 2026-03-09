@@ -29,10 +29,58 @@ class UserSeeder extends Seeder
             'email' => 'director@ie-huacaybamba.edu.pe',
         ], [
             'tenant_id' => 'ie-huacaybamba',
-            'name' => 'Mg. Juan Perez',
+            'name' => 'Mg. Juan Pérez',
             'password' => Hash::make('director123'),
             'role' => 'Director',
             'dni' => '12345678',
+            'cargo' => 'Director',
+        ]);
+
+        // Director de I.E. Canchabamba
+        User::firstOrCreate([
+            'email' => 'director@ie-canchabamba.edu.pe',
+        ], [
+            'tenant_id' => 'ie-canchabamba',
+            'name' => 'Lic. María Sánchez',
+            'password' => Hash::make('director123'),
+            'role' => 'Director',
+            'dni' => '23456789',
+            'cargo' => 'Director',
+        ]);
+
+        // Director de I.E. Cochabamba
+        User::firstOrCreate([
+            'email' => 'director@ie-cochabamba.edu.pe',
+        ], [
+            'tenant_id' => 'ie-cochabamba',
+            'name' => 'Prof. Carlos Romero',
+            'password' => Hash::make('director123'),
+            'role' => 'Director',
+            'dni' => '34567890',
+            'cargo' => 'Director',
+        ]);
+
+        // Director de I.E. Pinra
+        User::firstOrCreate([
+            'email' => 'director@ie-pinra.edu.pe',
+        ], [
+            'tenant_id' => 'ie-pinra',
+            'name' => 'Mag. Rosa Espinoza',
+            'password' => Hash::make('director123'),
+            'role' => 'Director',
+            'dni' => '45678901',
+            'cargo' => 'Director',
+        ]);
+
+        // Director de I.E. Arancay
+        User::firstOrCreate([
+            'email' => 'director@ie-arancay.edu.pe',
+        ], [
+            'tenant_id' => 'ie-arancay',
+            'name' => 'Lic. Pedro Huamán',
+            'password' => Hash::make('director123'),
+            'role' => 'Director',
+            'dni' => '56789012',
             'cargo' => 'Director',
         ]);
     }

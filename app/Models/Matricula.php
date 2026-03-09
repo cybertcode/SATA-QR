@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Matricula extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'estudiante_id',
@@ -15,14 +17,6 @@ class Matricula extends Model
         'anio_lectivo_id',
         'estado',
     ];
-
-    /**
-     * Institución asociada.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * El estudiante matriculado.

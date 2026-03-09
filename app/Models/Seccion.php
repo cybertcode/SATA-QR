@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Seccion extends Model
 {
+    use BelongsToTenant;
     protected $table = 'secciones';
 
     protected $fillable = [
@@ -17,14 +19,6 @@ class Seccion extends Model
         'letra',
         'tutor_id',
     ];
-
-    /**
-     * Institución asociada.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Nivel Educativo asociado (con su código modular).

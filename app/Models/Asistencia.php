@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Asistencia extends Model
 {
+    use BelongsToTenant;
     // Estados de Asistencia
     public const PRESENTE = 'P';
     public const TARDE = 'T';
@@ -25,14 +27,6 @@ class Asistencia extends Model
     protected $casts = [
         'fecha' => 'date',
     ];
-
-    /**
-     * Institución asociada (optimiza consultas de dashboard).
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
 
     /**
      * Matrícula a la que pertenece el registro.

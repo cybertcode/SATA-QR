@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Estudiante extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'tenant_id',
         'dni',
@@ -26,14 +27,6 @@ class Estudiante extends Model
     public function getNombreCompletoAttribute(): string
     {
         return "{$this->apellido_paterno} {$this->apellido_materno}, {$this->nombres}";
-    }
-
-    /**
-     * Institución a la que pertenece.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
     }
 
     /**
