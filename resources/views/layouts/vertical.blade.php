@@ -31,9 +31,6 @@
     {{-- SISTEMA GLOBAL DE ALERTAS --}}
     @include('layouts.partials/alerts')
 
-    {{-- SCRIPTS MAESTROS DE LA PLANTILLA --}}
-    @vite(['resources/js/app.js', 'resources/js/vendor.js'])
-
     {{-- LIVEWIRE: Re-renderizar Lucide icons + SweetAlert2 global --}}
     <script>
         document.addEventListener('livewire:init', () => {
@@ -43,7 +40,9 @@
             }) => {
                 succeed(() => {
                     requestAnimationFrame(() => {
-                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                        if (window.lucide) window.lucide.createIcons({
+                            icons: window.lucide.icons
+                        });
                     });
                 });
             });

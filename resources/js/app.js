@@ -206,7 +206,7 @@ class LayoutCustomizer {
     setSwitchFromConfig() {
         const config = this.config;
 
-        sessionStorage.setItem('__TAILWICK_CONFIG__', JSON.stringify(config));
+        localStorage.setItem('__SATA_QR_CONFIG__', JSON.stringify(config));
 
         document.querySelectorAll('#theme-customization input[type=radio]').forEach(cb => cb.checked = false);
 

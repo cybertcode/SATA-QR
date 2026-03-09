@@ -10,7 +10,7 @@
             <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-lg h-10" src="/images/logo-ugel.png" />
             <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-sm h-10"
                 src="/images/logo-ugel.png" />
-            <div class="logo-lg">
+            <div class="logo-lg text-center">
                 <span
                     class="text-sm font-black text-default-800 leading-none block uppercase tracking-tighter">{{ $siteConfig['sistema.ugel'] ?? 'UGEL' }}</span>
                 <span
@@ -22,7 +22,7 @@
                 src="/images/logo-ugel.png" />
             <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-sm h-10"
                 src="/images/logo-ugel.png" />
-            <div class="logo-lg">
+            <div class="logo-lg text-center">
                 <span
                     class="text-sm font-black text-white leading-none block uppercase tracking-tighter">{{ $siteConfig['sistema.ugel'] ?? 'UGEL' }}</span>
                 <span

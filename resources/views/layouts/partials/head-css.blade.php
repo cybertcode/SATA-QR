@@ -4,7 +4,7 @@
     (function() {
         const html = document.documentElement;
         const storageKey = "__SATA_QR_CONFIG__";
-        const savedConfig = sessionStorage.getItem(storageKey);
+        const savedConfig = localStorage.getItem(storageKey);
 
         // Default config
         const defaultConfig = {
@@ -26,8 +26,8 @@
             dir: html.getAttribute("dir") || defaultConfig.dir,
 
             theme: html.getAttribute("data-theme") === 'system' ?
-                getSystemTheme() :
-                html.getAttribute("data-theme") || (defaultConfig.theme === 'system' ? getSystemTheme() :
+                getSystemTheme() : html.getAttribute("data-theme") || (defaultConfig.theme === 'system' ?
+                    getSystemTheme() :
                     defaultConfig.theme),
             sidenav: {
                 color: html.getAttribute("data-sidenav-color") || defaultConfig.sidenav.color,
