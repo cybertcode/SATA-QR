@@ -2,6 +2,19 @@
 
 > **Stack:** Laravel 12 · PHP 8.2 · Livewire v3 · Rappasoft Datatables v3 · Tailwind CSS 4 · Alpine.js · MySQL
 > **Rama:** `develop`
+> **Principios de diseño:** SOLID obligatorio en todo el desarrollo
+
+### Principios SOLID — Requisito de Desarrollo
+
+Todo código producido en este proyecto DEBE adherirse a los principios SOLID:
+
+| Principio                     | Aplicación en SATA-QR                                                                                                                                      |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **S** — Single Responsibility | Cada clase/componente tiene una única razón de cambio. Ej: `UserManager` (CRUD + modales), `UsersTable` (datatable), `StudentImportService` (importación). |
+| **O** — Open/Closed           | Abierto a extensión, cerrado a modificación. Usar traits, interfaces y eventos para extender funcionalidad sin alterar clases existentes.                  |
+| **L** — Liskov Substitution   | Las subclases y componentes deben ser intercambiables sin romper el contrato. Respetar los contratos de Livewire, Rappasoft y Eloquent.                    |
+| **I** — Interface Segregation | Interfaces pequeñas y específicas. No forzar dependencias innecesarias. Separar contratos (ej: exportación, importación, notificación).                    |
+| **D** — Dependency Inversion  | Depender de abstracciones, no de implementaciones concretas. Usar inyección de dependencias de Laravel, Service Container y contratos (`Contracts`).       |
 
 ---
 
@@ -142,3 +155,33 @@
    → Usar Livewire.dispatch() para eventos que deben llegar al padre.
    → $dispatch() en wire:click ya es global en Livewire v3.
 ```
+
+---
+
+## 2026-03-09 — Fase 3: Auditoría SOLID y Refactorización del Módulo Usuarios
+
+### Auditoría SOLID realizada (pre-refactoring)
+
+Se analizó el módulo completo de usuarios y se identificaron las siguientes violaciones:
+
+| # | Problema | Principio | Severidad |
+|---|---|---|---|
+| 1 | `UserManager` es God Component (7 responsabilidades: crear, editar, eliminar, toggle, stats, form reset, render) | **S** (SRP) | Alta |
+| 2 | `UsersTable` maneja exportación Y lógica bulk además de configurar tabla | **S** (SRP) | Media |
+| 3 | Lógica de negocio directa en componentes Livewire (sin capa de servicio) | **D** (DIP) | Alta |
+| 4 | Roles hardcodeados como strings mágicos en 4+ archivos | **O** (OCP) | Alta |
+| 5 | Sin autorización granular — no hay Policy ni verificación de jerarquía | **Seguridad** | Crítica |
+| 6 | `computeStats()` ejecuta 3 queries separadas por cada operación | **Performance** | Media |
+| 7 | Sin FormRequest ni DTO — validación acoplada al componente | **I** (ISP) | Baja |
+| 8 | Helpers de rol redundantes en modelo User (wrappers 1:1 de Spatie) | **O** (OCP) | Baja |
+| 9 | Password por defecto hardcodeado en property pública | **Seguridad** | Media |
+| 10 | Sin scope de tenant — Administrador puede gestionar usuarios de cualquier I.E. | **Seguridad** | Alta |
+
+### Plan de refactorización (sin alterar funcionalidad)
+
+1. **Enum `UserRole`** — Fuente única de verdad para roles, eliminar strings mágicos
+2. **`UserService`** — Extraer lógica CRUD de UserManager a servicio inyectable (DIP)
+3. **`UserPolicy`** — Autorización granular con jerarquía de roles
+4. **`UserStatsService`** — Optimizar stats con una sola query agregada
+5. **Scope de tenant** — Filtrar datos según el tenant del usuario autenticado
+6. **Limpiar modelo User** — Eliminar helpers redundantes, usar enum
