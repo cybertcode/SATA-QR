@@ -36,6 +36,18 @@ class UserFactory extends Factory
     }
 
     /**
+     * Configure the model factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user) {
+            if ($user->role && \Spatie\Permission\Models\Role::where('name', $user->role)->exists()) {
+                $user->syncRoles([$user->role]);
+            }
+        });
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static

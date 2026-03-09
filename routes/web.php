@@ -11,6 +11,7 @@ use App\Http\Controllers\Sata\Alert\InterventionController;
 use App\Http\Controllers\Sata\Institution\SettingsController;
 use App\Http\Controllers\Sata\Attendance\ScannerController;
 use App\Http\Controllers\Sata\User\UserController;
+use App\Http\Controllers\Sata\User\RoleController;
 use App\Http\Controllers\Demo\RoutingController;
 
 /*
@@ -53,6 +54,11 @@ Route::group(['middleware' => 'auth'], function () {
     // ─── MÓDULO USUARIOS (Solo SuperAdmin/Administrador) ───
     Route::middleware('role:SuperAdmin,Administrador')->group(function () {
         Route::get('/usuarios', [UserController::class, 'index'])->name('users.index');
+    });
+
+    // ─── MÓDULO ROLES Y PERMISOS (Solo SuperAdmin) ───
+    Route::middleware('role:SuperAdmin')->group(function () {
+        Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
     });
 
     // ─── MÓDULO INSTITUCIÓN (SuperAdmin + Director) ───

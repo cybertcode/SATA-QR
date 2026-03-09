@@ -22,6 +22,7 @@ trait SeedRolesAndPermissions
             'alerts.manage',
             'interventions.log',
             'users.manage',
+            'roles.manage',
         ];
 
         foreach ($permissions as $perm) {

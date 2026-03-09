@@ -282,11 +282,11 @@ Se implementó el flujo completo de papelera (soft delete) con restauración y e
 #### Avatar coloreado por rol
 
 - `user-cell.blade.php`: el avatar circular ahora usa colores según el rol del usuario:
-  - SuperAdmin → `bg-danger/10 text-danger`
-  - Administrador → `bg-purple-500/10 text-purple-600`
-  - Director → `bg-primary/10 text-primary`
-  - Docente → `bg-warning/10 text-warning`
-  - Auxiliar → `bg-success/10 text-success`
+    - SuperAdmin → `bg-danger/10 text-danger`
+    - Administrador → `bg-purple-500/10 text-purple-600`
+    - Director → `bg-primary/10 text-primary`
+    - Docente → `bg-warning/10 text-warning`
+    - Auxiliar → `bg-success/10 text-success`
 
 ### Validación y UX
 
@@ -344,5 +344,119 @@ Se implementó el flujo completo de papelera (soft delete) con restauración y e
 │   JS Listeners: Livewire.on('swal')                  │
 │                 Livewire.on('confirmBulkAction')     │
 │   JS Dispatches: Livewire.dispatch('executeBulkAction')│
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2026-03-09 — Fase 5: Módulo Roles y Permisos
+
+### Commit — Módulo completo de gestión de roles y permisos
+
+Módulo exclusivo para SuperAdmin que permite gestionar roles de Spatie Permission y sus permisos asociados, siguiendo la misma arquitectura de 2 componentes (Manager + Table) del módulo de usuarios.
+
+#### Arquitectura del módulo
+
+| Capa | Archivo | Responsabilidad |
+|------|---------|-----------------|
+| Controller | `RoleController` | Renderiza vista `sata.roles.index` |
+| Livewire Parent | `RoleManager` | CRUD modales, stats, dispatches |
+| Livewire Child | `RolesTable` | DataTable de roles (Rappasoft) |
+| Livewire Child | `PermissionsTable` | DataTable de permisos (Rappasoft) |
+| Service | `RoleService` | Lógica de negocio (create, update, delete role/permission, stats) |
+| Policy | `RolePolicy` | Autorización (viewAny, create, update, delete, managePermissions) |
+
+#### Archivos nuevos
+
+- `app/Http/Controllers/Sata/User/RoleController.php`
+- `app/Livewire/Sata/RoleManager.php`
+- `app/Livewire/Sata/RolesTable.php`
+- `app/Livewire/Sata/PermissionsTable.php`
+- `app/Services/RoleService.php`
+- `app/Policies/RolePolicy.php`
+- `resources/views/sata/roles/index.blade.php`
+- `resources/views/livewire/sata/role-manager.blade.php`
+- `resources/views/livewire/sata/partials/role-actions-cell.blade.php`
+- `resources/views/livewire/sata/partials/permission-actions-cell.blade.php`
+- `tests/Feature/Policies/RolePolicyTest.php` (11 tests)
+- `tests/Feature/Services/RoleServiceTest.php` (7 tests)
+- `tests/Feature/RolesModuleFlowTest.php` (13 tests)
+
+#### Archivos modificados
+
+- `routes/web.php` — nueva ruta `GET /roles` con middleware `role:SuperAdmin`
+- `resources/views/layouts/partials/sidenav.blade.php` — acordeón "Personal" con sub-items "Gestión de Usuarios" y "Roles y Permisos" (condicional SuperAdmin)
+- `app/Providers/AppServiceProvider.php` — registro manual de `RolePolicy` para modelo Spatie `Role` (no auto-descubierto)
+- `database/seeders/RolesAndPermissionsSeeder.php` — nuevo permiso `roles.manage`
+- `database/factories/UserFactory.php` — hook `afterCreating` que sincroniza Spatie roles automáticamente
+- `tests/SeedRolesAndPermissions.php` — nuevo permiso `roles.manage`
+
+#### Funcionalidad de Roles
+
+- **Crear rol**: modal con nombre + checkboxes de permisos, validación unique
+- **Editar rol**: modifica nombre y sincroniza permisos (checkbox list dinámica)
+- **Eliminar rol**: solo roles custom (no protegidos del enum `UserRole`), solo si no tienen usuarios asignados
+- **Roles protegidos**: SuperAdmin, Administrador, Director, Docente, Auxiliar — marcados con ícono candado, no eliminables
+- **Tabla**: nombre (con badge "Protegido"), conteo permisos, conteo usuarios, fecha creación, acciones
+
+#### Funcionalidad de Permisos
+
+- **Crear permiso**: formato `modulo.accion` (regex validado), guard `web`
+- **Eliminar permiso**: solo si no está asignado a ningún rol
+- **Tabla**: nombre formateado (módulo.acción con colores), conteo roles asignados, estados "En uso" vs botón eliminar
+
+#### Autorización
+
+- `RolePolicy::viewAny()` — solo SuperAdmin
+- `RolePolicy::create()` — solo SuperAdmin
+- `RolePolicy::update()` — solo SuperAdmin, NO puede editar rol SuperAdmin
+- `RolePolicy::delete()` — solo SuperAdmin, NO puede eliminar roles del enum `UserRole`
+- `RolePolicy::managePermissions()` — solo SuperAdmin
+
+#### Estadísticas (3 tarjetas)
+
+- **Roles**: total de roles del sistema
+- **Permisos**: total de permisos registrados
+- **Roles con Usuarios**: roles que tienen al menos un usuario asignado
+
+#### Navegación actualizada
+
+- Menú lateral: el item "Gestión de Usuarios" ahora es un acordeón "Personal" con:
+  - Gestión de Usuarios (todos con acceso al módulo)
+  - Roles y Permisos (visible solo para SuperAdmin)
+
+#### Rappasoft workaround
+
+- `withCount(['permissions', 'users'])` genera aliases `permissions_count` y `users_count` que Rappasoft intenta seleccionar como columnas reales del schema
+- Solución: usar `Column::make('Permisos', 'id')->label(fn($row) => ...)` en lugar de `Column::make('Permisos', 'permissions_count')` — evita que Rappasoft incluya el aggregate alias en el SELECT
+
+#### UserFactory mejorado
+
+- Nuevo hook `configure() → afterCreating`: sincroniza automáticamente el Spatie role basándose en la columna `role`
+- Esto asegura que `middleware('role:X')` funcione en tests sin configuración manual
+
+#### Suite de tests (82 tests, 151 assertions)
+
+- **RolePolicyTest** (11 tests): viewAny, create, update, delete (protegido/custom), managePermissions
+- **RoleServiceTest** (7 tests): create con/sin permisos, update, delete, createPermission, deletePermission, getStats
+- **RolesModuleFlowTest** (13 tests): acceso página, CRUD roles (Livewire e2e), protección de roles del sistema, roles con usuarios, CRUD permisos, permisos en uso, render de tablas, stats
+
+### Arquitectura de eventos del módulo
+
+```
+┌─────────────────────────────────────────────────────┐
+│ RoleManager (padre)                                  │
+│   Listeners: #[On('editRole')]                       │
+│              #[On('deleteRole')]                      │
+│              #[On('deletePermission')]                │
+│   Dispatches: refreshRolesTable, swal                │
+├─────────────────────────────────────────────────────┤
+│ RolesTable (hijo - Rappasoft)                        │
+│   Listeners: #[On('refreshRolesTable')]              │
+│   Dispatches: (búsqueda interna Rappasoft)           │
+├─────────────────────────────────────────────────────┤
+│ PermissionsTable (hijo - Rappasoft)                   │
+│   Listeners: #[On('refreshRolesTable')]              │
+│   Dispatches: (búsqueda interna Rappasoft)           │
 └─────────────────────────────────────────────────────┘
 ```

@@ -25,6 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'alerts.manage',      // Gestionar alertas tempranas
             'interventions.log',  // Registrar intervenciones multisectoriales
             'users.manage',       // Gestionar directores/auxiliares
+            'roles.manage',       // Gestionar roles y permisos
         ];
 
         foreach ($permissions as $permission) {
