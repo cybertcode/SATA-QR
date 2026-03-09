@@ -56,6 +56,42 @@ class ConfiguracionGeneralSeeder extends Seeder
                 'descripcion' => 'Número de contacto para emergencias del sistema.',
                 'orden' => 5,
             ],
+            [
+                'grupo' => 'general',
+                'clave' => 'sistema.siglas',
+                'valor' => 'SATA-QR',
+                'tipo' => 'string',
+                'etiqueta' => 'Siglas del Sistema',
+                'descripcion' => 'Abreviatura que se muestra en el sidebar junto al logo.',
+                'orden' => 6,
+            ],
+            [
+                'grupo' => 'general',
+                'clave' => 'sistema.subtitulo_sidebar',
+                'valor' => 'Huacaybamba',
+                'tipo' => 'string',
+                'etiqueta' => 'Subtítulo del Sidebar',
+                'descripcion' => 'Texto debajo de las siglas en el menú lateral (ej: nombre de UGEL).',
+                'orden' => 7,
+            ],
+            [
+                'grupo' => 'general',
+                'clave' => 'sistema.descripcion_seo',
+                'valor' => 'Sistema de Alerta Temprana y Control de Asistencia mediante códigos QR para la prevención de la deserción escolar.',
+                'tipo' => 'string',
+                'etiqueta' => 'Descripción SEO',
+                'descripcion' => 'Meta descripción para buscadores y redes sociales.',
+                'orden' => 8,
+            ],
+            [
+                'grupo' => 'general',
+                'clave' => 'sistema.palabras_clave',
+                'valor' => 'asistencia escolar, QR, deserción, UGEL, alerta temprana, Perú',
+                'tipo' => 'string',
+                'etiqueta' => 'Palabras Clave SEO',
+                'descripcion' => 'Keywords separadas por coma para meta tags de buscadores.',
+                'orden' => 9,
+            ],
 
             // ═══════════════════════════ ASISTENCIA ═══════════════════════════
             [

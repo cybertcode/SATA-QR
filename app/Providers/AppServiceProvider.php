@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,5 +35,14 @@ class AppServiceProvider extends ServiceProvider
 
         // Registrar Policy para ConfiguracionGeneral
         Gate::policy(\App\Models\ConfiguracionGeneral::class, \App\Policies\ConfiguracionGeneralPolicy::class);
+
+        // Compartir configuración del sistema con todas las vistas
+        View::composer('*', function ($view) {
+            static $siteConfig = null;
+            if ($siteConfig === null && Schema::hasTable('configuraciones_generales')) {
+                $siteConfig = \App\Models\ConfiguracionGeneral::pluck('valor', 'clave')->toArray();
+            }
+            $view->with('siteConfig', $siteConfig ?? []);
+        });
     }
 }

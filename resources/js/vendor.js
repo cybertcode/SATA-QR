@@ -16,3 +16,6 @@ import 'simplebar';
 
 import { createIcons, icons } from 'lucide';
 createIcons({ icons });
+
+// Exponer globalmente para que Livewire pueda re-renderizar iconos
+window.lucide = { createIcons, icons };

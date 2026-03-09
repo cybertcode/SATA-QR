@@ -7,22 +7,26 @@
     <a class="logo-box sticky top-0 flex min-h-topbar-height items-center justify-start px-6 backdrop-blur-xs gap-3"
         href="{{ route('dashboard') }}">
         <div class="logo-light flex items-center gap-3">
-            <img alt="SATA QR" class="logo-lg h-10" src="/images/logo-ugel.png" />
-            <img alt="SATA QR" class="logo-sm h-10" src="/images/logo-ugel.png" />
+            <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-lg h-10" src="/images/logo-ugel.png" />
+            <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-sm h-10"
+                src="/images/logo-ugel.png" />
             <div class="logo-lg">
                 <span
-                    class="text-sm font-black text-default-800 leading-none block uppercase tracking-tighter">UGEL</span>
+                    class="text-sm font-black text-default-800 leading-none block uppercase tracking-tighter">{{ $siteConfig['sistema.ugel'] ?? 'UGEL' }}</span>
                 <span
-                    class="text-[10px] font-bold text-primary leading-none block uppercase tracking-tighter whitespace-nowrap">Huacaybamba</span>
+                    class="text-[10px] font-bold text-primary leading-none block uppercase tracking-tighter whitespace-nowrap">{{ $siteConfig['sistema.subtitulo_sidebar'] ?? 'Huacaybamba' }}</span>
             </div>
         </div>
         <div class="logo-dark flex items-center gap-3">
-            <img alt="SATA QR" class="logo-lg h-10" src="/images/logo-ugel.png" />
-            <img alt="SATA QR" class="logo-sm h-10" src="/images/logo-ugel.png" />
+            <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-lg h-10"
+                src="/images/logo-ugel.png" />
+            <img alt="{{ $siteConfig['sistema.siglas'] ?? 'SATA QR' }}" class="logo-sm h-10"
+                src="/images/logo-ugel.png" />
             <div class="logo-lg">
-                <span class="text-sm font-black text-white leading-none block uppercase tracking-tighter">UGEL</span>
                 <span
-                    class="text-[10px] font-bold text-primary leading-none block uppercase tracking-tighter whitespace-nowrap">Huacaybamba</span>
+                    class="text-sm font-black text-white leading-none block uppercase tracking-tighter">{{ $siteConfig['sistema.ugel'] ?? 'UGEL' }}</span>
+                <span
+                    class="text-[10px] font-bold text-primary leading-none block uppercase tracking-tighter whitespace-nowrap">{{ $siteConfig['sistema.subtitulo_sidebar'] ?? 'Huacaybamba' }}</span>
             </div>
         </div>
     </a>
