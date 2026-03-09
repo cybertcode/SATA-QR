@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,30 +49,19 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
-    // --- HELPERS DE ROL (delegados a spatie/permission) ---
+    /**
+     * Obtener el enum de rol del usuario.
+     */
+    public function roleEnum(): ?UserRole
+    {
+        return UserRole::tryFrom($this->role);
+    }
 
+    /**
+     * Atajos de rol — delegados al enum para evitar strings mágicos.
+     */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('SuperAdmin');
-    }
-
-    public function isDirector(): bool
-    {
-        return $this->hasRole('Director');
-    }
-
-    public function isDocente(): bool
-    {
-        return $this->hasRole('Docente');
-    }
-
-    public function isAdministrador(): bool
-    {
-        return $this->hasRole('Administrador');
-    }
-
-    public function isAuxiliar(): bool
-    {
-        return $this->hasRole('Auxiliar');
+        return $this->roleEnum() === UserRole::SuperAdmin;
     }
 }

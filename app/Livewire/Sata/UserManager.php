@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Sata;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use App\Models\Tenant;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Services\UserService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -24,16 +25,20 @@ class UserManager extends Component
     public string $role = 'Auxiliar';
     public ?string $tenant_id = null;
     public string $cargo = '';
-    public string $password = 'Sata2026*';
+    public string $password = '';
 
     // ─── Computed ───
     public array $stats = [];
 
+    private const DEFAULT_PASSWORD = 'Sata2026*';
+
     protected function rules(): array
     {
+        $validRoles = implode(',', UserRole::values());
+
         $rules = [
             'name' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s\.]+$/u'],
-            'role' => ['required', 'string', 'in:SuperAdmin,Administrador,Director,Docente,Auxiliar'],
+            'role' => ['required', 'string', 'in:' . $validRoles],
             'dni' => ['nullable', 'string', 'regex:/^[0-9]{8}$/'],
             'tenant_id' => ['nullable', 'exists:tenants,id'],
             'cargo' => ['nullable', 'string', 'max:100'],
@@ -68,45 +73,37 @@ class UserManager extends Component
         'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
     ];
 
-    public function mount(): void
+    public function mount(UserService $userService): void
     {
-        $this->computeStats();
+        $this->refreshStats($userService);
     }
 
     public function computeStats(): void
     {
-        $this->stats = [
-            'total' => User::count(),
-            'active' => User::where('is_active', true)->count(),
-            'inactive' => User::where('is_active', false)->count(),
-            'roles_count' => User::distinct('role')->count('role'),
-        ];
+        $this->refreshStats(app(UserService::class));
+    }
+
+    private function refreshStats(UserService $userService): void
+    {
+        $this->stats = $userService->getStats();
     }
 
     // ─── CREAR ───
     public function openCreate(): void
     {
+        Gate::authorize('create', User::class);
+
         $this->resetForm();
-        $this->password = 'Sata2026*';
+        $this->password = self::DEFAULT_PASSWORD;
         $this->showCreateModal = true;
     }
 
-    public function store(): void
+    public function store(UserService $userService): void
     {
+        Gate::authorize('create', User::class);
         $this->validate();
 
-        $user = User::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'dni' => $this->dni ?: null,
-            'role' => $this->role,
-            'tenant_id' => in_array($this->role, ['SuperAdmin', 'Administrador']) ? null : $this->tenant_id,
-            'cargo' => $this->cargo ?: null,
-            'password' => Hash::make($this->password),
-            'is_active' => true,
-        ]);
-
-        $user->syncRoles([$this->role]);
+        $userService->create($this->getFormData());
 
         $this->showCreateModal = false;
         $this->resetForm();
@@ -120,6 +117,8 @@ class UserManager extends Component
     public function openEdit(int $userId): void
     {
         $user = User::findOrFail($userId);
+        Gate::authorize('update', $user);
+
         $this->editingUserId = $user->id;
         $this->name = $user->name;
         $this->email = $user->email;
@@ -132,23 +131,13 @@ class UserManager extends Component
         $this->showEditModal = true;
     }
 
-    public function update(): void
+    public function update(UserService $userService): void
     {
+        $user = User::findOrFail($this->editingUserId);
+        Gate::authorize('update', $user);
         $this->validate();
 
-        $user = User::findOrFail($this->editingUserId);
-        $user->name = $this->name;
-        $user->dni = $this->dni ?: null;
-        $user->role = $this->role;
-        $user->tenant_id = in_array($this->role, ['SuperAdmin', 'Administrador']) ? null : $this->tenant_id;
-        $user->cargo = $this->cargo ?: null;
-
-        if ($this->password) {
-            $user->password = Hash::make($this->password);
-        }
-
-        $user->save();
-        $user->syncRoles([$this->role]);
+        $userService->update($user, $this->getFormData());
 
         $this->showEditModal = false;
         $this->resetForm();
@@ -159,16 +148,16 @@ class UserManager extends Component
 
     // ─── TOGGLE STATUS ───
     #[On('toggleStatus')]
-    public function toggleStatus(int $userId): void
+    public function toggleStatus(int $userId, UserService $userService): void
     {
-        if ($userId === Auth::id()) {
-            $this->dispatch('swal', icon: 'error', title: 'No puede desactivar su propia cuenta.');
+        $user = User::findOrFail($userId);
+
+        if (Gate::denies('toggleStatus', $user)) {
+            $this->dispatch('swal', icon: 'error', title: 'No tiene permisos para cambiar el estado de este usuario.');
             return;
         }
 
-        $user = User::findOrFail($userId);
-        $user->is_active = !$user->is_active;
-        $user->save();
+        $userService->toggleStatus($user);
 
         $this->computeStats();
         $this->dispatch('refreshDatatable');
@@ -177,14 +166,16 @@ class UserManager extends Component
 
     // ─── ELIMINAR ───
     #[On('deleteUser')]
-    public function destroy(int $userId): void
+    public function destroy(int $userId, UserService $userService): void
     {
-        if ($userId === Auth::id()) {
-            $this->dispatch('swal', icon: 'error', title: 'No puede eliminar su propia cuenta.');
+        $user = User::findOrFail($userId);
+
+        if (Gate::denies('delete', $user)) {
+            $this->dispatch('swal', icon: 'error', title: 'No tiene permisos para eliminar este usuario.');
             return;
         }
 
-        User::findOrFail($userId)->delete();
+        $userService->delete($user);
 
         $this->computeStats();
         $this->dispatch('refreshDatatable');
@@ -198,16 +189,30 @@ class UserManager extends Component
         $this->name = '';
         $this->email = '';
         $this->dni = '';
-        $this->role = 'Auxiliar';
+        $this->role = UserRole::Auxiliar->value;
         $this->tenant_id = null;
         $this->cargo = '';
         $this->password = '';
         $this->resetValidation();
     }
 
+    private function getFormData(): array
+    {
+        return [
+            'name' => $this->name,
+            'email' => $this->email,
+            'dni' => $this->dni,
+            'role' => $this->role,
+            'tenant_id' => $this->tenant_id,
+            'cargo' => $this->cargo,
+            'password' => $this->password,
+        ];
+    }
+
     public function updatedRole(): void
     {
-        if (in_array($this->role, ['SuperAdmin', 'Administrador'])) {
+        $role = UserRole::tryFrom($this->role);
+        if ($role && !$role->requiresTenant()) {
             $this->tenant_id = null;
         }
     }

@@ -164,18 +164,18 @@ Todo código producido en este proyecto DEBE adherirse a los principios SOLID:
 
 Se analizó el módulo completo de usuarios y se identificaron las siguientes violaciones:
 
-| # | Problema | Principio | Severidad |
-|---|---|---|---|
-| 1 | `UserManager` es God Component (7 responsabilidades: crear, editar, eliminar, toggle, stats, form reset, render) | **S** (SRP) | Alta |
-| 2 | `UsersTable` maneja exportación Y lógica bulk además de configurar tabla | **S** (SRP) | Media |
-| 3 | Lógica de negocio directa en componentes Livewire (sin capa de servicio) | **D** (DIP) | Alta |
-| 4 | Roles hardcodeados como strings mágicos en 4+ archivos | **O** (OCP) | Alta |
-| 5 | Sin autorización granular — no hay Policy ni verificación de jerarquía | **Seguridad** | Crítica |
-| 6 | `computeStats()` ejecuta 3 queries separadas por cada operación | **Performance** | Media |
-| 7 | Sin FormRequest ni DTO — validación acoplada al componente | **I** (ISP) | Baja |
-| 8 | Helpers de rol redundantes en modelo User (wrappers 1:1 de Spatie) | **O** (OCP) | Baja |
-| 9 | Password por defecto hardcodeado en property pública | **Seguridad** | Media |
-| 10 | Sin scope de tenant — Administrador puede gestionar usuarios de cualquier I.E. | **Seguridad** | Alta |
+| #   | Problema                                                                                                         | Principio       | Severidad |
+| --- | ---------------------------------------------------------------------------------------------------------------- | --------------- | --------- |
+| 1   | `UserManager` es God Component (7 responsabilidades: crear, editar, eliminar, toggle, stats, form reset, render) | **S** (SRP)     | Alta      |
+| 2   | `UsersTable` maneja exportación Y lógica bulk además de configurar tabla                                         | **S** (SRP)     | Media     |
+| 3   | Lógica de negocio directa en componentes Livewire (sin capa de servicio)                                         | **D** (DIP)     | Alta      |
+| 4   | Roles hardcodeados como strings mágicos en 4+ archivos                                                           | **O** (OCP)     | Alta      |
+| 5   | Sin autorización granular — no hay Policy ni verificación de jerarquía                                           | **Seguridad**   | Crítica   |
+| 6   | `computeStats()` ejecuta 3 queries separadas por cada operación                                                  | **Performance** | Media     |
+| 7   | Sin FormRequest ni DTO — validación acoplada al componente                                                       | **I** (ISP)     | Baja      |
+| 8   | Helpers de rol redundantes en modelo User (wrappers 1:1 de Spatie)                                               | **O** (OCP)     | Baja      |
+| 9   | Password por defecto hardcodeado en property pública                                                             | **Seguridad**   | Media     |
+| 10  | Sin scope de tenant — Administrador puede gestionar usuarios de cualquier I.E.                                   | **Seguridad**   | Alta      |
 
 ### Plan de refactorización (sin alterar funcionalidad)
 
@@ -185,3 +185,48 @@ Se analizó el módulo completo de usuarios y se identificaron las siguientes vi
 4. **`UserStatsService`** — Optimizar stats con una sola query agregada
 5. **Scope de tenant** — Filtrar datos según el tenant del usuario autenticado
 6. **Limpiar modelo User** — Eliminar helpers redundantes, usar enum
+
+### Refactorización aplicada
+
+#### 1. `App\Enums\UserRole` — Fuente única de verdad
+
+- Enum PHP 8.1 `backed: string` con los 5 roles del sistema
+- Métodos: `label()`, `level()` (jerarquía numérica), `requiresTenant()`, `values()`, `options()`, `canManage()`
+- Elimina strings mágicos dispersos en 4+ archivos
+
+#### 2. `App\Services\UserService` — Capa de servicio (DIP)
+
+- Extrae TODA la lógica de negocio fuera de los componentes Livewire
+- Métodos: `create()`, `update()`, `toggleStatus()`, `delete()`, `bulkToggle()`, `getStats()`
+- `create()` y `update()` envueltos en `DB::transaction()`
+- `getStats()` optimizado: una sola query con `selectRaw()` (antes eran 3 queries separadas)
+- `bulkToggle()` centraliza la lógica de bulk activate/deactivate
+
+#### 3. `App\Policies\UserPolicy` — Autorización granular
+
+- Controla: `viewAny`, `create`, `update`, `delete`, `toggleStatus`
+- Implementa jerarquía de roles: solo puedes gestionar usuarios con nivel inferior al tuyo
+- Auto-protección: no puedes editarte/eliminarte/desactivarte desde la gestión
+- Auto-descubierta por Laravel 12 (convención `UserPolicy` → `User`)
+
+#### 4. `UserManager` refactorizado
+
+- Delega operaciones CRUD a `UserService` (inyección en métodos Livewire)
+- Usa `Gate::authorize()` y `Gate::denies()` para autorización
+- Usa `UserRole::values()` para validación dinámica de roles
+- Usa `UserRole::Auxiliar->value` como default en `resetForm()`
+- Usa `UserRole::tryFrom()` en `updatedRole()` para verificar tenant
+- Password por defecto movido a `private const DEFAULT_PASSWORD`
+- Nuevo método `getFormData()` para encapsular datos del formulario
+
+#### 5. `UsersTable` refactorizado
+
+- Filtro de roles usa `UserRole::options()` en lugar de array hardcodeado
+- `executeBulkAction()` delega a `UserService::bulkToggle()`
+- Retorna count real de afectados en mensajes de bulk
+
+#### 6. Modelo `User` limpiado
+
+- Eliminados 5 helpers redundantes (`isDirector()`, `isDocente()`, etc.)
+- Añadido `roleEnum(): ?UserRole` para acceso tipado al enum
+- Conservado solo `isSuperAdmin()` (usado en rutas/vistas) pero delegando al enum

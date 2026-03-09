@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Sata;
 
+use App\Enums\UserRole;
 use App\Exports\UsersExport;
 use App\Models\User;
 use App\Models\Tenant;
+use App\Services\UserService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
@@ -139,10 +141,7 @@ class UsersTable extends DataTableComponent
 
         return [
             SelectFilter::make('Rol', 'role')
-                ->options(['' => 'Todos los Roles'] + array_combine(
-                    ['SuperAdmin', 'Administrador', 'Director', 'Docente', 'Auxiliar'],
-                    ['SuperAdmin', 'Administrador', 'Director', 'Docente', 'Auxiliar']
-                ))
+                ->options(['' => 'Todos los Roles'] + UserRole::options())
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('role', $value);
                 }),
@@ -298,7 +297,7 @@ class UsersTable extends DataTableComponent
     }
 
     #[On('executeBulkAction')]
-    public function executeBulkAction(string $action): void
+    public function executeBulkAction(string $action, UserService $userService): void
     {
         if (empty($this->pendingBulkIds))
             return;
@@ -308,21 +307,17 @@ class UsersTable extends DataTableComponent
         $this->clearSelected();
 
         if ($action === 'doActivate') {
-            User::whereIn('id', $ids)
-                ->where('id', '!=', auth()->id())
-                ->update(['is_active' => true]);
+            $count = $userService->bulkToggle($ids, true);
 
             $this->dispatch('refreshDatatable');
-            $this->dispatch('swal', icon: 'success', title: count($ids) . ' usuario(s) activado(s).');
+            $this->dispatch('swal', icon: 'success', title: $count . ' usuario(s) activado(s).');
         }
 
         if ($action === 'doDeactivate') {
-            User::whereIn('id', $ids)
-                ->where('id', '!=', auth()->id())
-                ->update(['is_active' => false]);
+            $count = $userService->bulkToggle($ids, false);
 
             $this->dispatch('refreshDatatable');
-            $this->dispatch('swal', icon: 'success', title: count($ids) . ' usuario(s) desactivado(s).');
+            $this->dispatch('swal', icon: 'success', title: $count . ' usuario(s) desactivado(s).');
         }
     }
 }
