@@ -357,14 +357,14 @@ Módulo exclusivo para SuperAdmin que permite gestionar roles de Spatie Permissi
 
 #### Arquitectura del módulo
 
-| Capa | Archivo | Responsabilidad |
-|------|---------|-----------------|
-| Controller | `RoleController` | Renderiza vista `sata.roles.index` |
-| Livewire Parent | `RoleManager` | CRUD modales, stats, dispatches |
-| Livewire Child | `RolesTable` | DataTable de roles (Rappasoft) |
-| Livewire Child | `PermissionsTable` | DataTable de permisos (Rappasoft) |
-| Service | `RoleService` | Lógica de negocio (create, update, delete role/permission, stats) |
-| Policy | `RolePolicy` | Autorización (viewAny, create, update, delete, managePermissions) |
+| Capa            | Archivo            | Responsabilidad                                                   |
+| --------------- | ------------------ | ----------------------------------------------------------------- |
+| Controller      | `RoleController`   | Renderiza vista `sata.roles.index`                                |
+| Livewire Parent | `RoleManager`      | CRUD modales, stats, dispatches                                   |
+| Livewire Child  | `RolesTable`       | DataTable de roles (Rappasoft)                                    |
+| Livewire Child  | `PermissionsTable` | DataTable de permisos (Rappasoft)                                 |
+| Service         | `RoleService`      | Lógica de negocio (create, update, delete role/permission, stats) |
+| Policy          | `RolePolicy`       | Autorización (viewAny, create, update, delete, managePermissions) |
 
 #### Archivos nuevos
 
@@ -422,8 +422,8 @@ Módulo exclusivo para SuperAdmin que permite gestionar roles de Spatie Permissi
 #### Navegación actualizada
 
 - Menú lateral: el item "Gestión de Usuarios" ahora es un acordeón "Personal" con:
-  - Gestión de Usuarios (todos con acceso al módulo)
-  - Roles y Permisos (visible solo para SuperAdmin)
+    - Gestión de Usuarios (todos con acceso al módulo)
+    - Roles y Permisos (visible solo para SuperAdmin)
 
 #### Rappasoft workaround
 

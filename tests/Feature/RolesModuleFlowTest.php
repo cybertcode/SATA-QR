@@ -101,19 +101,23 @@ class RolesModuleFlowTest extends TestCase
         $this->assertDatabaseHas('roles', ['name' => 'Director']);
     }
 
-    public function test_cannot_delete_role_with_users(): void
+    public function test_delete_role_with_users_detaches_them(): void
     {
         $admin = User::factory()->superAdmin()->create();
-        $role = Role::create(['name' => 'WithUser', 'guard_name' => 'web']);
+        $role = Role::create(['name' => 'Temporal', 'guard_name' => 'web']);
         $user = User::factory()->create();
         $user->assignRole($role);
+
+        $this->assertTrue($user->hasRole('Temporal'));
 
         Livewire::actingAs($admin)
             ->test(RoleManager::class)
             ->call('destroyRole', $role->id)
             ->assertDispatched('swal');
 
-        $this->assertDatabaseHas('roles', ['name' => 'WithUser']);
+        $this->assertDatabaseMissing('roles', ['name' => 'Temporal']);
+        $user->refresh();
+        $this->assertFalse($user->hasRole('Temporal'));
     }
 
     public function test_create_permission(): void
