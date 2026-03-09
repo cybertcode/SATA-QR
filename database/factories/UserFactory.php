@@ -29,6 +29,9 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'dni' => fake()->unique()->numerify('########'),
+            'role' => 'Auxiliar',
+            'is_active' => true,
         ];
     }
 
@@ -37,8 +40,33 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function superAdmin(): static
+    {
+        return $this->state(fn() => ['role' => 'SuperAdmin']);
+    }
+
+    public function administrador(): static
+    {
+        return $this->state(fn() => ['role' => 'Administrador']);
+    }
+
+    public function director(): static
+    {
+        return $this->state(fn() => ['role' => 'Director']);
+    }
+
+    public function docente(): static
+    {
+        return $this->state(fn() => ['role' => 'Docente']);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn() => ['is_active' => false]);
     }
 }

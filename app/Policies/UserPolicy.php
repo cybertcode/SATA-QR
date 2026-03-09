@@ -61,6 +61,26 @@ class UserPolicy
     }
 
     /**
+     * Puede restaurar si es jerárquicamente superior.
+     */
+    public function restore(User $auth, User $target): bool
+    {
+        return $this->canManageTarget($auth, $target);
+    }
+
+    /**
+     * Puede eliminar permanentemente solo SuperAdmin.
+     */
+    public function forceDelete(User $auth, User $target): bool
+    {
+        if ($auth->id === $target->id) {
+            return false;
+        }
+
+        return $auth->roleEnum() === UserRole::SuperAdmin;
+    }
+
+    /**
      * Verifica jerarquía de roles: el autenticado debe tener nivel superior al target.
      */
     private function canManageTarget(User $auth, User $target): bool

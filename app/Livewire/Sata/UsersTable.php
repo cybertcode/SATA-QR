@@ -22,6 +22,9 @@ class UsersTable extends DataTableComponent
     // Temporary storage for pending bulk action IDs
     public array $pendingBulkIds = [];
 
+    // Track if viewing trashed users
+    public string $trashedFilter = '';
+
     /**
      * Placeholder skeleton mientras el componente carga (lazy loading).
      */
@@ -48,6 +51,19 @@ class UsersTable extends DataTableComponent
     public function refreshTable(): void
     {
         // Rappasoft re-renders automatically
+    }
+
+    #[On('setTrashedFilter')]
+    public function setTrashedFilter(string $filter = ''): void
+    {
+        $this->trashedFilter = $filter;
+    }
+
+    #[On('setStatusFilter')]
+    public function setStatusFilter(string $status = ''): void
+    {
+        $this->trashedFilter = '';
+        $this->setFilter('status', $status);
     }
 
     public function configure(): void
@@ -106,7 +122,9 @@ class UsersTable extends DataTableComponent
             ])
             ->setTrAttributes(fn($row, int $rowIndex) => [
                 'default' => false,
-                'class' => 'transition-colors hover:bg-default-50' . (!$row->is_active ? ' opacity-50' : ''),
+                'class' => 'transition-colors hover:bg-default-50'
+                    . (!$row->is_active ? ' opacity-50' : '')
+                    . ($this->trashedFilter === 'trashed' || (!empty($row->deleted_at)) ? ' bg-danger/5 opacity-60' : ''),
             ])
             ->setSearchFieldAttributes([
                 'default' => false,
@@ -132,7 +150,15 @@ class UsersTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        return User::query()->with('tenant')->orderByDesc('users.created_at');
+        $query = User::query()->with('tenant')->orderByDesc('users.created_at');
+
+        if ($this->trashedFilter === 'trashed') {
+            $query->onlyTrashed();
+        } elseif ($this->trashedFilter === 'all') {
+            $query->withTrashed();
+        }
+
+        return $query;
     }
 
     public function filters(): array
@@ -198,6 +224,7 @@ class UsersTable extends DataTableComponent
                 ->format(fn($value, $row) => view('livewire.sata.partials.status-toggle', [
                     'user' => $row,
                     'isSelf' => $row->id === auth()->id(),
+                    'isTrashed' => $this->trashedFilter === 'trashed' || !empty($row->deleted_at),
                 ]))
                 ->html(),
 
@@ -216,6 +243,7 @@ class UsersTable extends DataTableComponent
                 ->format(fn($value, $row) => view('livewire.sata.partials.actions-cell', [
                     'user' => $row,
                     'isSelf' => $row->id === auth()->id(),
+                    'isTrashed' => $this->trashedFilter === 'trashed' || !empty($row->deleted_at),
                 ]))
                 ->html()
                 ->unclickable()

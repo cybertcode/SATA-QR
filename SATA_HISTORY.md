@@ -230,3 +230,119 @@ Se analizó el módulo completo de usuarios y se identificaron las siguientes vi
 - Eliminados 5 helpers redundantes (`isDirector()`, `isDocente()`, etc.)
 - Añadido `roleEnum(): ?UserRole` para acceso tipado al enum
 - Conservado solo `isSuperAdmin()` (usado en rutas/vistas) pero delegando al enum
+
+---
+
+## 2026-03-09 — Fase 4: SoftDeletes, Mejoras Visuales y Suite de Tests
+
+### Commit — SoftDelete completo para usuarios
+
+Se implementó el flujo completo de papelera (soft delete) con restauración y eliminación permanente.
+
+#### Migración y Modelo
+
+- Nueva migración `2026_03_09_111658_add_soft_deletes_to_users_table.php` — añade columna `deleted_at`.
+- `User` model: trait `SoftDeletes` agregado.
+
+#### Service + Policy
+
+- `UserService`: nuevos métodos `restore()` y `forceDelete()`. Stats ahora incluye conteo `trashed` (query separada con `onlyTrashed()`).
+- `UserPolicy`: nuevos métodos `restore()` (jerarquía de roles) y `forceDelete()` (solo SuperAdmin, no auto-eliminación).
+
+#### Componentes Livewire
+
+- `UserManager`: nuevos listeners `#[On('restoreUser')]` → `restore()` y `#[On('forceDeleteUser')]` → `forceDestroy()`, ambos con Gate checks y SweetAlert feedback.
+- `UsersTable`: propiedad `trashedFilter`, listener `#[On('setTrashedFilter')]`, listener `#[On('setStatusFilter')]`. Builder condicional: `onlyTrashed()` / `withTrashed()` según filtro.
+
+#### Detección robusta de usuarios eliminados
+
+- **Problema encontrado:** `$row->trashed()` en closures `format()` de Rappasoft NO funcionaba — el trait SoftDeletes pierde contexto al rehidratar modelos internamente.
+- **Solución:** Doble verificación `$this->trashedFilter === 'trashed' || !empty($row->deleted_at)` en lugar de `$row->trashed()`.
+- Aplicado en 3 puntos: `setTrAttributes()`, columna Estado, columna Acciones.
+
+#### UI de papelera
+
+- `actions-cell.blade.php`: condicional `@if ($isTrashed)` — muestra botón **Restaurar** (verde, SweetAlert con confirmación) y botón **Eliminar permanentemente** (rojo, SweetAlert con advertencia irreversible). Cuando NO está en papelera: botones Editar + Eliminar (soft) como antes.
+- `status-toggle.blade.php`: cuando `isTrashed`, muestra badge **"Eliminado"** con ícono papelera rojo en lugar del toggle activar/desactivar.
+- `user-manager.blade.php`: grupo de botones **Activos / Papelera / Todos** en card-header con highlighting dinámico (Alpine `x-data`). Dispatch `setTrashedFilter` para sincronizar con UsersTable.
+
+### Mejoras Visuales
+
+#### 5ª tarjeta de estadísticas: Papelera
+
+- Grid ampliado a `xl:grid-cols-5 md:grid-cols-3 grid-cols-2`.
+- Nueva tarjeta con ícono papelera en color `warning` mostrando `$stats['trashed']`.
+
+#### Tarjetas clickeables
+
+- Las 5 tarjetas ahora son interactivas (`cursor-pointer`, `hover:shadow-md`).
+- Click en **Total** → limpia filtros. **Activos** → filtra activos. **Inactivos** → filtra inactivos. **Papelera** → muestra eliminados.
+- Dispatches: `setStatusFilter` (para las 3 primeras) y `setTrashedFilter` (para papelera).
+
+#### Avatar coloreado por rol
+
+- `user-cell.blade.php`: el avatar circular ahora usa colores según el rol del usuario:
+  - SuperAdmin → `bg-danger/10 text-danger`
+  - Administrador → `bg-purple-500/10 text-purple-600`
+  - Director → `bg-primary/10 text-primary`
+  - Docente → `bg-warning/10 text-warning`
+  - Auxiliar → `bg-success/10 text-success`
+
+### Validación y UX
+
+#### DNI obligatorio y único
+
+- Regla `'dni' => ['required', 'regex:/^[0-9]{8}$/', 'unique:users,dni']` (antes era `nullable`).
+- Asterisco visual `*` + atributo `required` en ambos modales.
+
+#### Contraseña por defecto = DNI
+
+- Hook `updatedDni()`: cuando se crea un usuario y el DNI tiene 8 dígitos, auto-rellena la contraseña.
+- Hint en modal: "Predeterminada: su número de DNI".
+
+### Suite de Tests (51 tests, 97 assertions)
+
+#### Infraestructura de testing
+
+- Habilitado `pdo_sqlite` en php.ini para tests con `:memory:`.
+- `UserFactory`: añadidos estados `superAdmin()`, `administrador()`, `director()`, `docente()`, `inactive()`, y campos `dni`, `role`, `is_active`.
+- `SeedRolesAndPermissions` trait: setup de roles y permisos Spatie para tests.
+- Migraciones compatibles SQLite: `enum()` → `string()`, `DB::statement` con guard de driver.
+- `UserService::getStats()`: `CURDATE()` → binding con `DATE(?) = ?` (compatible MySQL + SQLite).
+
+#### Tests unitarios (13 tests)
+
+- `UserRoleTest` (12 tests): labels, levels, jerarquía, `requiresTenant()`, `canManage()`, `values()`, `options()`.
+
+#### Tests de feature (38 tests)
+
+- `UserPolicyTest` (18 tests): `viewAny`, `create`, `update`, `delete`, `toggleStatus`, `restore`, `forceDelete` — flujos positivos y negativos, jerarquía, auto-protección.
+- `UserServiceTest` (11 tests): CRUD completo, toggle, softDelete, restore, forceDelete, bulkToggle (incluye exclusión de self), stats con trashed.
+- `SoftDeleteFlowTest` (8 tests): flujo e2e con Livewire — soft delete, restore, force delete, permisos denegados, stats con trashed, crear usuario (dispatches swal + refreshDatatable), toggle status.
+- `ExampleTest`: corregido para esperar redirect (302) en lugar de 200.
+
+### Arquitectura de eventos actualizada
+
+```
+┌─────────────────────────────────────────────────────┐
+│ UserManager (padre)                                  │
+│   Listeners: #[On('toggleStatus')]                   │
+│              #[On('editUser')]                        │
+│              #[On('deleteUser')]                      │
+│              #[On('restoreUser')]        ← NUEVO      │
+│              #[On('forceDeleteUser')]    ← NUEVO      │
+│   Dispatches: refreshDatatable, swal                 │
+├─────────────────────────────────────────────────────┤
+│ UsersTable (hijo - Rappasoft)                         │
+│   Listeners: #[On('refreshDatatable')]               │
+│              #[On('executeBulkAction')]               │
+│              #[On('setTrashedFilter')]   ← NUEVO      │
+│              #[On('setStatusFilter')]    ← NUEVO      │
+│   Dispatches: confirmBulkAction                      │
+├─────────────────────────────────────────────────────┤
+│ Layout (vertical.blade.php)                           │
+│   JS Listeners: Livewire.on('swal')                  │
+│                 Livewire.on('confirmBulkAction')     │
+│   JS Dispatches: Livewire.dispatch('executeBulkAction')│
+└─────────────────────────────────────────────────────┘
+```

@@ -32,8 +32,10 @@
     {{-- ═══════════════════════════════════════════════════════ --}}
     {{-- TARJETAS DE ESTADÍSTICAS                               --}}
     {{-- ═══════════════════════════════════════════════════════ --}}
-    <div class="grid md:grid-cols-4 grid-cols-2 gap-5 mb-5">
-        <div class="card" wire:loading.class="animate-pulse" wire:target="store, update, toggleStatus, destroy">
+    <div class="grid xl:grid-cols-5 md:grid-cols-3 grid-cols-2 gap-5 mb-5">
+        <div class="card cursor-pointer hover:shadow-md transition-shadow" wire:loading.class="animate-pulse"
+            wire:target="store, update, toggleStatus, destroy"
+            x-on:click="Livewire.dispatch('setStatusFilter', { status: '' })">
             <div class="card-body flex items-center gap-3">
                 <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -50,7 +52,9 @@
                 </div>
             </div>
         </div>
-        <div class="card" wire:loading.class="animate-pulse" wire:target="store, update, toggleStatus, destroy">
+        <div class="card cursor-pointer hover:shadow-md transition-shadow" wire:loading.class="animate-pulse"
+            wire:target="store, update, toggleStatus, destroy"
+            x-on:click="Livewire.dispatch('setStatusFilter', { status: 'active' })">
             <div class="card-body flex items-center gap-3">
                 <div class="size-12 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -66,7 +70,9 @@
                 </div>
             </div>
         </div>
-        <div class="card" wire:loading.class="animate-pulse" wire:target="store, update, toggleStatus, destroy">
+        <div class="card cursor-pointer hover:shadow-md transition-shadow" wire:loading.class="animate-pulse"
+            wire:target="store, update, toggleStatus, destroy"
+            x-on:click="Livewire.dispatch('setStatusFilter', { status: 'inactive' })">
             <div class="card-body flex items-center gap-3">
                 <div class="size-12 rounded-lg bg-danger/10 flex items-center justify-center shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -88,13 +94,32 @@
                 <div class="size-12 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6 text-info">
-                        <path
-                            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" x2="3" y1="12" y2="12" />
                     </svg>
                 </div>
                 <div>
-                    <p class="text-default-500 text-xs uppercase tracking-wide">Roles</p>
-                    <h4 class="text-xl font-bold text-default-800">{{ $stats['roles_count'] }}</h4>
+                    <p class="text-default-500 text-xs uppercase tracking-wide">Accesos Hoy</p>
+                    <h4 class="text-xl font-bold text-info">{{ $stats['last_login_today'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card cursor-pointer hover:shadow-md transition-shadow" wire:loading.class="animate-pulse"
+            wire:target="store, update, toggleStatus, destroy"
+            x-on:click="Livewire.dispatch('setTrashedFilter', { filter: 'trashed' })">
+            <div class="card-body flex items-center gap-3">
+                <div class="size-12 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6 text-warning">
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-default-500 text-xs uppercase tracking-wide">Papelera</p>
+                    <h4 class="text-xl font-bold text-warning">{{ $stats['trashed'] }}</h4>
                 </div>
             </div>
         </div>
@@ -104,28 +129,64 @@
     {{-- TABLA + HEADER                                         --}}
     {{-- ═══════════════════════════════════════════════════════ --}}
     <div class="card">
-        <div class="card-header">
+        <div class="card-header flex-wrap gap-3">
             <h6 class="card-title">Directorio de Personal</h6>
-            <button class="btn btn-sm bg-primary text-white inline-flex items-center gap-1" type="button"
-                x-on:click="showCreate = true; $wire.openCreate()" wire:loading.attr="disabled"
-                wire:target="openCreate">
-                <span wire:loading.remove wire:target="openCreate">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <line x1="19" x2="19" y1="8" y2="14" />
-                        <line x1="22" x2="16" y1="11" y2="11" />
-                    </svg>
-                </span>
-                <span wire:loading wire:target="openCreate">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 animate-spin">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
-                </span>
-                Nuevo Usuario
-            </button>
+            <div class="flex items-center gap-2 ms-auto flex-wrap">
+                {{-- Filtro papelera --}}
+                <div x-data="{ filter: '' }" class="inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button"
+                        class="btn btn-sm border border-default-200 rounded-s-md rounded-e-none transition-colors"
+                        :class="filter === '' ? 'bg-primary text-white' :
+                            'bg-white text-default-600 hover:bg-default-50'"
+                        x-on:click="filter = ''; Livewire.dispatch('setTrashedFilter', { filter: '' })">
+                        Activos
+                    </button>
+                    <button type="button"
+                        class="btn btn-sm border-y border-default-200 rounded-none transition-colors"
+                        :class="filter === 'trashed' ? 'bg-warning text-white' :
+                            'bg-white text-default-600 hover:bg-default-50'"
+                        x-on:click="filter = 'trashed'; Livewire.dispatch('setTrashedFilter', { filter: 'trashed' })">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="size-3.5 me-1">
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                        Papelera
+                    </button>
+                    <button type="button"
+                        class="btn btn-sm border border-default-200 rounded-e-md rounded-s-none transition-colors"
+                        :class="filter === 'all' ? 'bg-default-700 text-white' :
+                            'bg-white text-default-600 hover:bg-default-50'"
+                        x-on:click="filter = 'all'; Livewire.dispatch('setTrashedFilter', { filter: 'all' })">
+                        Todos
+                    </button>
+                </div>
+                {{-- Nuevo usuario --}}
+                <button class="btn btn-sm bg-primary text-white inline-flex items-center gap-1" type="button"
+                    x-on:click="showCreate = true; $wire.openCreate()" wire:loading.attr="disabled"
+                    wire:target="openCreate">
+                    <span wire:loading.remove wire:target="openCreate">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="size-4">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <line x1="19" x2="19" y1="8" y2="14" />
+                            <line x1="22" x2="16" y1="11" y2="11" />
+                        </svg>
+                    </span>
+                    <span wire:loading wire:target="openCreate">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="size-4 animate-spin">
+                            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                    </span>
+                    Nuevo Usuario
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <livewire:sata.users-table />
@@ -136,8 +197,8 @@
     {{-- MODAL: Crear Usuario                                   --}}
     {{-- x-show + x-transition = apertura/cierre INSTANTÁNEO    --}}
     {{-- ═══════════════════════════════════════════════════════ --}}
-    <div x-show="showCreate" x-cloak class="fixed inset-0 z-80 overflow-y-auto"
-        x-on:keydown.escape.window="if(showCreate) showCreate = false">
+    <div x-show="showCreate" x-cloak class="fixed inset-0 z-80 overflow-y-auto" role="dialog" aria-modal="true"
+        aria-labelledby="modal-create-title" x-on:keydown.escape.window="if(showCreate) showCreate = false">
 
         {{-- Backdrop con fade --}}
         <div class="fixed inset-0 bg-black/50" x-show="showCreate"
@@ -158,7 +219,7 @@
                 x-transition:leave-end="opacity-0 scale-95 translate-y-4" x-on:click.stop>
 
                 <div class="card-header">
-                    <h3 class="font-semibold text-base text-default-800">
+                    <h3 id="modal-create-title" class="font-semibold text-base text-default-800">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="size-4 me-1 align-text-bottom inline-block">
@@ -193,7 +254,7 @@
                             @enderror
                         </div>
                         {{-- Email + DNI --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid sm:grid-cols-2 grid-cols-1 gap-4">
                             <div>
                                 <label class="inline-block mb-2 text-sm text-default-800 font-medium">Correo <span
                                         class="text-danger">*</span></label>
@@ -205,11 +266,12 @@
                                 @enderror
                             </div>
                             <div>
-                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">DNI</label>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">DNI <span
+                                        class="text-danger">*</span></label>
                                 <input type="text" wire:model.blur="dni"
                                     class="form-input font-mono tracking-widest @error('dni') border-danger @enderror"
                                     maxlength="8" minlength="8" pattern="[0-9]{8}" inputmode="numeric"
-                                    placeholder="00000000"
+                                    placeholder="00000000" required
                                     x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').slice(0, 8)">
                                 @error('dni')
                                     <p class="text-danger text-xs mt-1">{{ $message }}</p>
@@ -217,18 +279,16 @@
                             </div>
                         </div>
                         {{-- Rol + Cargo --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid sm:grid-cols-2 grid-cols-1 gap-4">
                             <div>
                                 <label class="inline-block mb-2 text-sm text-default-800 font-medium">Rol <span
                                         class="text-danger">*</span></label>
                                 <select wire:model.live="role"
                                     class="form-input @error('role') border-danger @enderror">
                                     <option value="" disabled>Seleccione un rol...</option>
-                                    <option value="Auxiliar">Auxiliar</option>
-                                    <option value="Docente">Docente PIP</option>
-                                    <option value="Director">Director I.E.</option>
-                                    <option value="Administrador">Administrador</option>
-                                    <option value="SuperAdmin">SuperAdmin (UGEL)</option>
+                                    @foreach ($roleOptions as $roleOption)
+                                        <option value="{{ $roleOption->value }}">{{ $roleOption->label() }}</option>
+                                    @endforeach
                                 </select>
                                 @error('role')
                                     <p class="text-danger text-xs mt-1">{{ $message }}</p>
@@ -245,7 +305,7 @@
                             </div>
                         </div>
                         {{-- Tenant --}}
-                        @if (!in_array($role, ['SuperAdmin', 'Administrador']))
+                        @if (\App\Enums\UserRole::tryFrom($role)?->requiresTenant() ?? true)
                             <div>
                                 <label class="inline-block mb-2 text-sm text-default-800 font-medium">Institución
                                     Educativa</label>
@@ -265,9 +325,33 @@
                         <div>
                             <label class="inline-block mb-2 text-sm text-default-800 font-medium">Contraseña <span
                                     class="text-danger">*</span></label>
-                            <input type="password" wire:model="password"
-                                class="form-input @error('password') border-danger @enderror"
-                                autocomplete="new-password" minlength="8">
+                            <div x-data="{ showPw: false }" class="relative">
+                                <input :type="showPw ? 'text' : 'password'" wire:model="password"
+                                    class="form-input pe-10 @error('password') border-danger @enderror"
+                                    autocomplete="new-password" minlength="8">
+                                <button type="button"
+                                    class="absolute inset-y-0 end-0 flex items-center pe-3 text-default-400 hover:text-default-600"
+                                    x-on:click="showPw = !showPw" tabindex="-1"
+                                    aria-label="Mostrar u ocultar contraseña">
+                                    <svg x-show="!showPw" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="size-4">
+                                        <path
+                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                    <svg x-show="showPw" x-cloak xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="size-4">
+                                        <path
+                                            d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                                        <path
+                                            d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                                        <path d="m2 2 20 20" />
+                                    </svg>
+                                </button>
+                            </div>
                             <p class="text-default-400 text-[11px] mt-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -276,7 +360,7 @@
                                     <path d="M12 16v-4" />
                                     <path d="M12 8h.01" />
                                 </svg>
-                                Predeterminada: Sata2026*
+                                Predeterminada: su número de DNI
                             </p>
                             @error('password')
                                 <p class="text-danger text-xs mt-1">{{ $message }}</p>
@@ -312,13 +396,10 @@
 
     {{-- ═══════════════════════════════════════════════════════ --}}
     {{-- MODAL: Editar Usuario                                  --}}
-    {{-- ═══════════════════════════════════════════════════════ --}}
-    {{-- ═══════════════════════════════════════════════════════ --}}
-    {{-- MODAL: Editar Usuario                                  --}}
     {{-- x-show + x-transition = apertura/cierre INSTANTÁNEO    --}}
     {{-- ═══════════════════════════════════════════════════════ --}}
-    <div x-show="showEdit" x-cloak class="fixed inset-0 z-80 overflow-y-auto"
-        x-on:keydown.escape.window="if(showEdit) showEdit = false">
+    <div x-show="showEdit" x-cloak class="fixed inset-0 z-80 overflow-y-auto" role="dialog" aria-modal="true"
+        aria-labelledby="modal-edit-title" x-on:keydown.escape.window="if(showEdit) showEdit = false">
 
         {{-- Backdrop con fade --}}
         <div class="fixed inset-0 bg-black/50" x-show="showEdit"
@@ -338,7 +419,7 @@
                 x-transition:leave-end="opacity-0 scale-95 translate-y-4" x-on:click.stop>
 
                 <div class="card-header">
-                    <h3 class="font-semibold text-base text-default-800">
+                    <h3 id="modal-edit-title" class="font-semibold text-base text-default-800">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="size-4 me-1 align-text-bottom inline-block">
@@ -380,7 +461,7 @@
                             @enderror
                         </div>
                         {{-- Email (disabled) + DNI --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid sm:grid-cols-2 grid-cols-1 gap-4">
                             <div>
                                 <label
                                     class="inline-block mb-2 text-sm text-default-800 font-medium opacity-60">Email</label>
@@ -388,11 +469,12 @@
                                     class="form-input bg-default-100 text-default-500 cursor-not-allowed" disabled>
                             </div>
                             <div>
-                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">DNI</label>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">DNI <span
+                                        class="text-danger">*</span></label>
                                 <input type="text" wire:model.blur="dni"
                                     class="form-input font-mono tracking-widest @error('dni') border-danger @enderror"
                                     maxlength="8" minlength="8" pattern="[0-9]{8}" inputmode="numeric"
-                                    placeholder="00000000"
+                                    placeholder="00000000" required
                                     x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').slice(0, 8)">
                                 @error('dni')
                                     <p class="text-danger text-xs mt-1">{{ $message }}</p>
@@ -400,18 +482,16 @@
                             </div>
                         </div>
                         {{-- Rol + Cargo --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid sm:grid-cols-2 grid-cols-1 gap-4">
                             <div>
                                 <label class="inline-block mb-2 text-sm text-default-800 font-medium">Rol <span
                                         class="text-danger">*</span></label>
                                 <select wire:model.live="role"
                                     class="form-input @error('role') border-danger @enderror">
                                     <option value="" disabled>Seleccione un rol...</option>
-                                    <option value="Auxiliar">Auxiliar</option>
-                                    <option value="Docente">Docente PIP</option>
-                                    <option value="Director">Director I.E.</option>
-                                    <option value="Administrador">Administrador</option>
-                                    <option value="SuperAdmin">SuperAdmin (UGEL)</option>
+                                    @foreach ($roleOptions as $roleOption)
+                                        <option value="{{ $roleOption->value }}">{{ $roleOption->label() }}</option>
+                                    @endforeach
                                 </select>
                                 @error('role')
                                     <p class="text-danger text-xs mt-1">{{ $message }}</p>
@@ -428,7 +508,7 @@
                             </div>
                         </div>
                         {{-- Tenant --}}
-                        @if (!in_array($role, ['SuperAdmin', 'Administrador']))
+                        @if (\App\Enums\UserRole::tryFrom($role)?->requiresTenant() ?? true)
                             <div>
                                 <label class="inline-block mb-2 text-sm text-default-800 font-medium">Institución
                                     Educativa</label>
@@ -448,9 +528,34 @@
                         <div>
                             <label class="inline-block mb-2 text-sm text-default-800 font-medium">Nueva
                                 Contraseña</label>
-                            <input type="password" wire:model="password"
-                                class="form-input @error('password') border-danger @enderror"
-                                placeholder="Dejar vacío para mantener" autocomplete="new-password" minlength="8">
+                            <div x-data="{ showPw: false }" class="relative">
+                                <input :type="showPw ? 'text' : 'password'" wire:model="password"
+                                    class="form-input pe-10 @error('password') border-danger @enderror"
+                                    placeholder="Dejar vacío para mantener" autocomplete="new-password"
+                                    minlength="8">
+                                <button type="button"
+                                    class="absolute inset-y-0 end-0 flex items-center pe-3 text-default-400 hover:text-default-600"
+                                    x-on:click="showPw = !showPw" tabindex="-1"
+                                    aria-label="Mostrar u ocultar contraseña">
+                                    <svg x-show="!showPw" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="size-4">
+                                        <path
+                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                    <svg x-show="showPw" x-cloak xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" class="size-4">
+                                        <path
+                                            d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+                                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                                        <path
+                                            d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+                                        <path d="m2 2 20 20" />
+                                    </svg>
+                                </button>
+                            </div>
                             @error('password')
                                 <p class="text-danger text-xs mt-1">{{ $message }}</p>
                             @enderror

@@ -1,4 +1,14 @@
-@if ($isSelf)
+@if ($isTrashed ?? false)
+    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+            <path d="M3 6h18" />
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
+        Eliminado
+    </span>
+@elseif ($isSelf)
     <span class="inline-flex items-center gap-1.5 text-xs font-medium text-success">
         <span class="size-1.5 rounded-full bg-success"></span> Tú
     </span>
@@ -6,6 +16,7 @@
     <label class="relative inline-flex cursor-pointer" title="{{ $user->is_active ? 'Desactivar' : 'Activar' }}"
         x-data="{ toggling: false }">
         <input type="checkbox" class="sr-only peer" {{ $user->is_active ? 'checked' : '' }}
+            aria-label="{{ $user->is_active ? 'Desactivar' : 'Activar' }} usuario {{ $user->name }}"
             x-on:change="toggling = true; Livewire.dispatch('toggleStatus', { userId: {{ $user->id }} }); setTimeout(() => toggling = false, 5000)"
             x-bind:disabled="toggling">
         <div x-show="!toggling"

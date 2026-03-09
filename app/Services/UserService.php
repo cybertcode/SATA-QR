@@ -72,11 +72,27 @@ class UserService
     }
 
     /**
-     * Eliminar un usuario.
+     * Eliminar un usuario (soft delete).
      */
     public function delete(User $user): void
     {
         $user->delete();
+    }
+
+    /**
+     * Restaurar un usuario eliminado.
+     */
+    public function restore(User $user): void
+    {
+        $user->restore();
+    }
+
+    /**
+     * Eliminar permanentemente un usuario.
+     */
+    public function forceDelete(User $user): void
+    {
+        $user->forceDelete();
     }
 
     /**
@@ -94,18 +110,23 @@ class UserService
      */
     public function getStats(): array
     {
+        $today = now()->toDateString();
+
         $stats = User::query()
             ->selectRaw('COUNT(*) as total')
             ->selectRaw('SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active')
             ->selectRaw('SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive')
-            ->selectRaw('COUNT(DISTINCT role) as roles_count')
+            ->selectRaw("SUM(CASE WHEN DATE(last_login_at) = ? THEN 1 ELSE 0 END) as last_login_today", [$today])
             ->first();
+
+        $trashed = User::onlyTrashed()->count();
 
         return [
             'total' => (int) $stats->total,
             'active' => (int) $stats->active,
             'inactive' => (int) $stats->inactive,
-            'roles_count' => (int) $stats->roles_count,
+            'last_login_today' => (int) $stats->last_login_today,
+            'trashed' => $trashed,
         ];
     }
 }

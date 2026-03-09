@@ -8,12 +8,17 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void
     {
-        // Ampliar el enum para soportar todos los roles del plan de desarrollo
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('SuperAdmin', 'Director', 'Docente', 'Auxiliar') DEFAULT 'Auxiliar'");
     }
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('SuperAdmin', 'Director', 'Auxiliar') DEFAULT 'Director'");
     }
 };

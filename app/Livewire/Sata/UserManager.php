@@ -30,8 +30,6 @@ class UserManager extends Component
     // ─── Computed ───
     public array $stats = [];
 
-    private const DEFAULT_PASSWORD = 'Sata2026*';
-
     protected function rules(): array
     {
         $validRoles = implode(',', UserRole::values());
@@ -39,7 +37,7 @@ class UserManager extends Component
         $rules = [
             'name' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s\.]+$/u'],
             'role' => ['required', 'string', 'in:' . $validRoles],
-            'dni' => ['nullable', 'string', 'regex:/^[0-9]{8}$/'],
+            'dni' => ['required', 'string', 'regex:/^[0-9]{8}$/'],
             'tenant_id' => ['nullable', 'exists:tenants,id'],
             'cargo' => ['nullable', 'string', 'max:100'],
         ];
@@ -63,6 +61,7 @@ class UserManager extends Component
         'email.required' => 'El correo es obligatorio.',
         'email.email' => 'Ingrese un correo electrónico válido.',
         'email.unique' => 'Este correo ya está registrado.',
+        'dni.required' => 'El DNI es obligatorio.',
         'dni.regex' => 'El DNI debe tener exactamente 8 dígitos numéricos.',
         'dni.unique' => 'Este DNI ya está registrado en otro usuario.',
         'role.required' => 'Debe seleccionar un rol.',
@@ -94,7 +93,6 @@ class UserManager extends Component
         Gate::authorize('create', User::class);
 
         $this->resetForm();
-        $this->password = self::DEFAULT_PASSWORD;
         $this->showCreateModal = true;
     }
 
@@ -164,7 +162,7 @@ class UserManager extends Component
         $this->dispatch('swal', icon: 'success', title: $user->is_active ? 'Usuario activado.' : 'Usuario desactivado.');
     }
 
-    // ─── ELIMINAR ───
+    // ─── ELIMINAR (Soft Delete) ───
     #[On('deleteUser')]
     public function destroy(int $userId, UserService $userService): void
     {
@@ -179,7 +177,43 @@ class UserManager extends Component
 
         $this->computeStats();
         $this->dispatch('refreshDatatable');
-        $this->dispatch('swal', icon: 'success', title: 'Usuario eliminado del sistema.');
+        $this->dispatch('swal', icon: 'success', title: 'Usuario movido a la papelera.');
+    }
+
+    // ─── RESTAURAR ───
+    #[On('restoreUser')]
+    public function restore(int $userId, UserService $userService): void
+    {
+        $user = User::onlyTrashed()->findOrFail($userId);
+
+        if (Gate::denies('restore', $user)) {
+            $this->dispatch('swal', icon: 'error', title: 'No tiene permisos para restaurar este usuario.');
+            return;
+        }
+
+        $userService->restore($user);
+
+        $this->computeStats();
+        $this->dispatch('refreshDatatable');
+        $this->dispatch('swal', icon: 'success', title: 'Usuario restaurado exitosamente.');
+    }
+
+    // ─── ELIMINAR PERMANENTE ───
+    #[On('forceDeleteUser')]
+    public function forceDestroy(int $userId, UserService $userService): void
+    {
+        $user = User::onlyTrashed()->findOrFail($userId);
+
+        if (Gate::denies('forceDelete', $user)) {
+            $this->dispatch('swal', icon: 'error', title: 'No tiene permisos para eliminar permanentemente.');
+            return;
+        }
+
+        $userService->forceDelete($user);
+
+        $this->computeStats();
+        $this->dispatch('refreshDatatable');
+        $this->dispatch('swal', icon: 'success', title: 'Usuario eliminado permanentemente.');
     }
 
     // ─── HELPERS ───
@@ -209,6 +243,13 @@ class UserManager extends Component
         ];
     }
 
+    public function updatedDni(): void
+    {
+        if (!$this->editingUserId && strlen($this->dni) === 8) {
+            $this->password = $this->dni;
+        }
+    }
+
     public function updatedRole(): void
     {
         $role = UserRole::tryFrom($this->role);
@@ -221,6 +262,7 @@ class UserManager extends Component
     {
         return view('livewire.sata.user-manager', [
             'tenants' => Tenant::orderBy('nombre')->get(),
+            'roleOptions' => UserRole::cases(),
         ]);
     }
 }
