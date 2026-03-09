@@ -12,6 +12,7 @@ use App\Http\Controllers\Sata\Institution\SettingsController;
 use App\Http\Controllers\Sata\Attendance\ScannerController;
 use App\Http\Controllers\Sata\User\UserController;
 use App\Http\Controllers\Sata\User\RoleController;
+use App\Http\Controllers\Sata\Admin\ConfiguracionGeneralController;
 use App\Http\Controllers\Demo\RoutingController;
 
 /*
@@ -59,6 +60,7 @@ Route::group(['middleware' => 'auth'], function () {
     // ─── MÓDULO ROLES Y PERMISOS (Solo SuperAdmin) ───
     Route::middleware('role:SuperAdmin')->group(function () {
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+        Route::get('/configuracion-general', [ConfiguracionGeneralController::class, 'index'])->name('config.general');
     });
 
     // ─── MÓDULO INSTITUCIÓN (SuperAdmin + Director) ───

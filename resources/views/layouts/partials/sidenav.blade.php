@@ -128,6 +128,17 @@
                 </div>
             </li>
 
+            @if ($user->isSuperAdmin())
+                {{-- CONFIGURACIÓN DEL SISTEMA (Solo SuperAdmin) --}}
+                <li class="menu-item">
+                    <a class="menu-link {{ Route::is('config.general') ? 'active' : '' }}"
+                        href="{{ route('config.general') }}">
+                        <span class="menu-icon"><i data-lucide="sliders-horizontal"></i></span>
+                        <span class="menu-text"> Configuración General </span>
+                    </a>
+                </li>
+            @endif
+
             <li class="hs-accordion menu-item {{ Route::is(['alerts.*', 'interventions.*']) ? 'active' : '' }}">
                 <a class="hs-accordion-toggle menu-link {{ Route::is(['alerts.*', 'interventions.*']) ? 'active' : '' }}"
                     href="javascript:void(0)">
