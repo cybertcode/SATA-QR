@@ -238,36 +238,76 @@ Asegúrate que `/public/.htaccess` existe y contiene:
 
 ## 9. Troubleshooting Común
 
-### Error 500 - Internal Server Error
+### Error 500 - Internal Server Error (SOLUCIÓN PASO A PASO)
 
-- Verificar `.env` existe y APP_KEY está generado
-- Permisos de carpetas: `storage` y `bootstrap/cache` deben ser 775
-- Logs en `storage/logs/laravel.log`
+**Causa más común:** APP_KEY no generado o permisos incorrectos.
+
+#### Solución Inmediata:
+```bash
+# 1. Generar APP_KEY
+php artisan key:generate
+
+# 2. Verificar .env existe (renombrar .env.production a .env si es necesario)
+
+# 3. Permisos correctos
+chmod 755 storage
+chmod 755 bootstrap/cache
+chmod -R 775 storage/logs
+chmod -R 775 storage/framework
+chmod -R 775 storage/app
+
+# 4. Limpiar cache
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+# 5. Verificar BD
+php artisan migrate:status
+```
+
+#### Si persiste el error:
+- Activar debug temporalmente: `APP_DEBUG=true` en .env
+- Revisar logs: `tail -f storage/logs/laravel.log`
+- Verificar PHP extensions: `php -m | grep -E "(pdo|mysql|mbstring|openssl|tokenizer|ctype|json|fileinfo)"`
 
 ### Error 404 - Not Found
-
 - Document Root apunta a `/public`? Verificar en cPanel
 - `.htaccess` existe en `/public`?
 - `mod_rewrite` habilitado?
 
 ### Error de Base de Datos
-
 - Credenciales correctas en `.env`?
 - Usuario MySQL tiene permisos en la BD?
 - Host es `localhost` (no IP externa)?
 
 ### Blanco Page (White Screen)
-
 - `APP_DEBUG=true` temporalmente para ver errores
 - Verificar PHP version >= 8.2
 - Extensiones PHP instaladas (ver requisitos arriba)
 
-### Assets no cargan (CSS/JS)
+### Directory Listing (muestra carpetas)
+- `.htaccess` no se está leyendo (AllowOverride None)
+- Contactar soporte para habilitar mod_rewrite y AllowOverride
 
+### Assets no cargan (CSS/JS)
 - Ejecutar `npm run build` en servidor?
 - Paths correctos en `public/build/`?
 
 ### Verificar instalación:
+```bash
+# Probar rutas básicas
+curl -I https://informatica.ugelhuacaybamba.edu.pe/
+# Debe retornar 200 OK
+
+# Probar PHP
+php -v
+# Debe ser 8.2+
+
+# Probar Laravel
+php artisan --version
+# Debe mostrar Laravel Framework 12.x.x
+```
 
 ```bash
 # Probar rutas básicas
