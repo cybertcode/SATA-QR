@@ -1,0 +1,821 @@
+@extends('layouts.vertical', ['title' => 'Gestión de Usuarios'])
+
+@section('content')
+    @include('layouts.partials/page-title', [
+        'subtitle' => 'Administración',
+        'title' => 'Gestión de Usuarios',
+    ])
+
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{-- TARJETAS DE ESTADÍSTICAS                               --}}
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    <div class="grid md:grid-cols-4 grid-cols-2 gap-5 mb-5">
+        <div class="card">
+            <div class="card-body flex items-center gap-3">
+                <div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <i class="size-6 text-primary" data-lucide="users"></i>
+                </div>
+                <div>
+                    <p class="text-default-500 text-xs uppercase tracking-wide">Total</p>
+                    <h4 class="text-xl font-bold text-default-800">{{ $stats['total'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body flex items-center gap-3">
+                <div class="size-12 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+                    <i class="size-6 text-success" data-lucide="user-check"></i>
+                </div>
+                <div>
+                    <p class="text-default-500 text-xs uppercase tracking-wide">Activos</p>
+                    <h4 class="text-xl font-bold text-success">{{ $stats['active'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body flex items-center gap-3">
+                <div class="size-12 rounded-lg bg-danger/10 flex items-center justify-center shrink-0">
+                    <i class="size-6 text-danger" data-lucide="user-x"></i>
+                </div>
+                <div>
+                    <p class="text-default-500 text-xs uppercase tracking-wide">Inactivos</p>
+                    <h4 class="text-xl font-bold text-danger">{{ $stats['inactive'] }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body flex items-center gap-3">
+                <div class="size-12 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+                    <i class="size-6 text-info" data-lucide="shield"></i>
+                </div>
+                <div>
+                    <p class="text-default-500 text-xs uppercase tracking-wide">Roles</p>
+                    <h4 class="text-xl font-bold text-default-800">{{ $stats['roles']->count() }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{-- TABLA PRINCIPAL                                        --}}
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    <div class="card">
+        <div class="card-header">
+            <h6 class="card-title">Directorio de Personal</h6>
+            <button class="btn btn-sm bg-primary text-white" data-hs-overlay="#createModal" type="button">
+                <i class="size-4 me-1" data-lucide="user-plus"></i>Nuevo Usuario
+            </button>
+        </div>
+        <div class="card-header">
+            <div class="flex items-center flex-wrap gap-3 w-full">
+                <form action="{{ route('users.index') }}" method="GET" class="relative flex-1 min-w-[280px]"
+                    id="searchForm">
+                    <input class="form-input form-input-sm ps-9 w-full" name="search" value="{{ request('search') }}"
+                        placeholder="Buscar por nombre, email o DNI..." type="text">
+                    <div class="absolute inset-y-0 start-0 flex items-center ps-3">
+                        <i class="size-3.5 flex items-center text-default-500" data-lucide="search"></i>
+                    </div>
+                    @if (request('role'))
+                        <input type="hidden" name="role" value="{{ request('role') }}">
+                    @endif
+                    @if (request('status'))
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                    @endif
+                    @if (request('tenant_id'))
+                        <input type="hidden" name="tenant_id" value="{{ request('tenant_id') }}">
+                    @endif
+                    @if (request('per_page'))
+                        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                    @endif
+                </form>
+                <select class="form-input form-input-sm w-auto" id="filterRole">
+                    <option value="">Todos los Roles</option>
+                    @foreach ($roles as $role)
+                        <option value="{{ $role }}" {{ request('role') == $role ? 'selected' : '' }}>
+                            {{ $role }}
+                        </option>
+                    @endforeach
+                </select>
+                <select class="form-input form-input-sm w-auto" id="filterStatus">
+                    <option value="">Todos los Estados</option>
+                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Activos</option>
+                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactivos</option>
+                </select>
+                <select class="form-input form-input-sm w-auto" id="filterTenant">
+                    <option value="">Todas las I.E.</option>
+                    @foreach ($tenants as $t)
+                        <option value="{{ $t->id }}" {{ request('tenant_id') == $t->id ? 'selected' : '' }}>
+                            {{ $t->nombre }}
+                        </option>
+                    @endforeach
+                </select>
+                @if (request()->hasAny(['search', 'role', 'status', 'tenant_id']))
+                    <a href="{{ route('users.index') }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}"
+                        class="btn btn-sm bg-transparent border border-dashed border-danger text-danger hover:bg-danger/10">
+                        <i class="size-4" data-lucide="x"></i> Limpiar
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <div class="flex flex-col">
+            <div class="overflow-x-auto">
+                <div class="min-w-full inline-block align-middle">
+                    <div class="overflow-hidden">
+                        <table class="min-w-full divide-y divide-default-200">
+                            <thead class="bg-default-150">
+                                <tr class="text-sm font-normal text-default-700 whitespace-nowrap">
+                                    <th class="px-3.5 py-3 text-start" scope="col">Usuario</th>
+                                    <th class="px-3.5 py-3 text-start" scope="col">DNI</th>
+                                    <th class="px-3.5 py-3 text-start" scope="col">Institución</th>
+                                    <th class="px-3.5 py-3 text-start" scope="col">Cargo</th>
+                                    <th class="px-3.5 py-3 text-start" scope="col">Rol</th>
+                                    <th class="px-3.5 py-3 text-center" scope="col">Estado</th>
+                                    <th class="px-3.5 py-3 text-start" scope="col">Último Acceso</th>
+                                    <th class="px-3.5 py-3 text-center" scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-default-200">
+                                @forelse($users as $u)
+                                    <tr class="text-default-800 font-normal hover:bg-default-50 transition-all duration-300 {{ !$u->is_active ? 'opacity-50' : '' }}"
+                                        data-user-id="{{ $u->id }}">
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap text-sm">
+                                            <div class="flex items-center gap-3">
+                                                <div class="relative">
+                                                    <div
+                                                        class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
+                                                        {{ substr($u->name, 0, 1) }}{{ substr(explode(' ', $u->name)[1] ?? '', 0, 1) }}
+                                                    </div>
+                                                    <span
+                                                        class="absolute size-2.5 rounded-full border-2 border-white end-0 bottom-0 {{ $u->is_active ? 'bg-success' : 'bg-danger' }}"></span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="text-default-800 font-medium mb-0.5">
+                                                        {{ $u->name }}</h6>
+                                                    <p class="text-[11px] text-default-500">{{ $u->email }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap text-sm font-mono text-primary">
+                                            {{ $u->dni ?? '--------' }}
+                                        </td>
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap text-sm text-default-600">
+                                            {{ $u->tenant->nombre ?? 'UGEL Huacaybamba' }}
+                                        </td>
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap text-sm text-default-600">
+                                            {{ $u->cargo ?? '—' }}
+                                        </td>
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap">
+                                            @php
+                                                $roleConfig = [
+                                                    'SuperAdmin' => [
+                                                        'class' => 'bg-danger/10 border-danger/30 text-danger',
+                                                        'icon' => 'shield-alert',
+                                                    ],
+                                                    'Administrador' => [
+                                                        'class' =>
+                                                            'bg-purple-500/10 border-purple-500/30 text-purple-600',
+                                                        'icon' => 'shield',
+                                                    ],
+                                                    'Director' => [
+                                                        'class' => 'bg-primary/10 border-primary/30 text-primary',
+                                                        'icon' => 'briefcase',
+                                                    ],
+                                                    'Docente' => [
+                                                        'class' => 'bg-warning/10 border-warning/30 text-warning',
+                                                        'icon' => 'graduation-cap',
+                                                    ],
+                                                    'Auxiliar' => [
+                                                        'class' => 'bg-success/10 border-success/30 text-success',
+                                                        'icon' => 'scan-line',
+                                                    ],
+                                                ];
+                                                $rc = $roleConfig[$u->role] ?? [
+                                                    'class' => 'bg-default-100 border-default-200 text-default-600',
+                                                    'icon' => 'user',
+                                                ];
+                                            @endphp
+                                            <span
+                                                class="inline-flex items-center gap-x-1.5 py-0.5 px-2.5 rounded text-xs font-medium border {{ $rc['class'] }}">
+                                                <i class="size-3" data-lucide="{{ $rc['icon'] }}"></i>
+                                                {{ $u->role }}
+                                            </span>
+                                        </td>
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap text-center">
+                                            @if ($u->id !== auth()->id())
+                                                <label class="relative inline-flex cursor-pointer">
+                                                    <input type="checkbox" class="sr-only peer js-toggle-status"
+                                                        data-id="{{ $u->id }}"
+                                                        {{ $u->is_active ? 'checked' : '' }}>
+                                                    <div
+                                                        class="w-9 h-5 bg-default-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success">
+                                                    </div>
+                                                </label>
+                                            @else
+                                                <span
+                                                    class="inline-flex items-center gap-1.5 text-xs font-medium text-success">
+                                                    <span class="size-1.5 rounded-full bg-success"></span> Tú
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3.5 py-2.5 whitespace-nowrap text-sm text-default-500">
+                                            @if ($u->last_login_at)
+                                                <span title="{{ $u->last_login_at->format('d/m/Y H:i') }}">
+                                                    {{ $u->last_login_at->diffForHumans() }}
+                                                </span>
+                                            @else
+                                                <span class="text-default-400 italic text-xs">Nunca</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3.5 py-2.5">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <button type="button"
+                                                    class="btn size-7.5 bg-default-200 hover:bg-primary hover:text-white text-default-500 js-edit-btn"
+                                                    data-id="{{ $u->id }}" data-name="{{ e($u->name) }}"
+                                                    data-email="{{ e($u->email) }}" data-dni="{{ $u->dni }}"
+                                                    data-cargo="{{ e($u->cargo) }}" data-role="{{ $u->role }}"
+                                                    data-tenant="{{ $u->tenant_id }}" title="Editar">
+                                                    <i class="size-3.5" data-lucide="pencil"></i>
+                                                </button>
+                                                @if ($u->id !== auth()->id())
+                                                    <button type="button"
+                                                        class="btn size-7.5 bg-default-200 hover:bg-danger hover:text-white text-default-500 js-delete-btn"
+                                                        data-id="{{ $u->id }}" data-name="{{ e($u->name) }}"
+                                                        title="Eliminar">
+                                                        <i class="size-3.5" data-lucide="trash-2"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center py-10 text-default-500">
+                                            <i data-lucide="users" class="size-10 mx-auto mb-3 opacity-20"></i>
+                                            <p class="mb-1">No se encontraron usuarios.</p>
+                                            @if (request()->hasAny(['search', 'role', 'status', 'tenant_id']))
+                                                <a href="{{ route('users.index') }}"
+                                                    class="text-primary text-sm hover:underline">Limpiar filtros</a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer border-t border-default-200 py-3 px-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <p class="text-sm text-default-500">
+                        Mostrando {{ $users->firstItem() ?? 0 }} - {{ $users->lastItem() ?? 0 }} de
+                        {{ $users->total() }} usuarios
+                    </p>
+                    <div class="flex items-center gap-1.5">
+                        <label class="text-sm text-default-500">|</label>
+                        <select class="form-input form-input-sm py-1 !w-16 text-center" id="perPageSelect">
+                            @foreach ([10, 25, 50, 100] as $pp)
+                                <option value="{{ $pp }}"
+                                    {{ request('per_page', 10) == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+                            @endforeach
+                        </select>
+                        <label class="text-sm text-default-500">por página</label>
+                    </div>
+                </div>
+                @if ($users->hasPages())
+                    {{ $users->links('pagination::tailwind') }}
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{-- MODAL: Crear Usuario                                   --}}
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    <div id="createModal"
+        class="hs-overlay hidden size-full fixed top-0 start-0 z-80 overflow-x-hidden overflow-y-auto pointer-events-none"
+        role="dialog" tabindex="-1" aria-labelledby="createModal-label">
+        <div
+            class="hs-overlay-animation-target hs-overlay-open:scale-100 hs-overlay-open:opacity-100 scale-95 opacity-0 ease-in-out transition-all duration-200 sm:max-w-lg sm:w-full m-3 sm:mx-auto min-h-[calc(100%-56px)] flex items-center">
+            <div class="card w-full flex flex-col border border-default-200 shadow-2xs rounded-xl pointer-events-auto">
+                <div class="card-header">
+                    <h3 id="createModal-label" class="font-semibold text-base text-default-800">
+                        <i class="size-4 me-1 align-text-bottom inline-block" data-lucide="user-plus"></i>
+                        Registrar Nuevo Usuario
+                    </h3>
+                    <button type="button" class="size-5 text-default-800" aria-label="Cerrar"
+                        data-hs-overlay="#createModal">
+                        <i data-lucide="x" class="size-5"></i>
+                    </button>
+                </div>
+                <form id="createForm" novalidate>
+                    <div class="card-body space-y-4">
+                        <div>
+                            <label class="inline-block mb-2 text-sm text-default-800 font-medium">Nombre
+                                Completo <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-input" placeholder="Nombres y apellidos"
+                                required>
+                            <p class="js-error text-danger text-xs mt-1 hidden" data-field="name"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">Correo
+                                    Electrónico <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-input" placeholder="correo@ejemplo.com"
+                                    required>
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="email"></p>
+                            </div>
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">DNI</label>
+                                <input type="text" name="dni" class="form-input font-mono" maxlength="8"
+                                    placeholder="12345678">
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="dni"></p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">Rol <span
+                                        class="text-danger">*</span></label>
+                                <select name="role" class="form-input js-role-select">
+                                    <option value="Auxiliar">Auxiliar</option>
+                                    <option value="Docente">Docente PIP</option>
+                                    <option value="Director">Director I.E.</option>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="SuperAdmin">SuperAdmin (UGEL)</option>
+                                </select>
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="role"></p>
+                            </div>
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">Cargo</label>
+                                <input type="text" name="cargo" class="form-input" placeholder="Ej: Especialista">
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="cargo"></p>
+                            </div>
+                        </div>
+                        <div class="js-tenant-group">
+                            <label class="inline-block mb-2 text-sm text-default-800 font-medium">Institución
+                                Educativa</label>
+                            <select name="tenant_id" class="form-input">
+                                <option value="" disabled selected>Seleccione una I.E...</option>
+                                @foreach ($tenants as $tenant)
+                                    <option value="{{ $tenant->id }}">{{ $tenant->nombre }}</option>
+                                @endforeach
+                            </select>
+                            <p class="js-error text-danger text-xs mt-1 hidden" data-field="tenant_id"></p>
+                        </div>
+                        <div>
+                            <label class="inline-block mb-2 text-sm text-default-800 font-medium">Contraseña
+                                <span class="text-danger">*</span></label>
+                            <input type="password" name="password" class="form-input" value="Sata2026*">
+                            <p class="text-default-400 text-[11px] mt-1">
+                                <i class="size-3 inline-block align-text-bottom" data-lucide="info"></i>
+                                Predeterminada: Sata2026*
+                            </p>
+                            <p class="js-error text-danger text-xs mt-1 hidden" data-field="password"></p>
+                        </div>
+                    </div>
+                    <div class="card-footer flex gap-2 justify-end">
+                        <button type="button" class="bg-transparent text-danger btn border-0 hover:bg-danger/10"
+                            data-hs-overlay="#createModal">Cancelar</button>
+                        <button type="submit" class="btn bg-primary text-white js-submit-btn"
+                            data-label="Crear Usuario">
+                            <i class="size-4 me-1" data-lucide="plus"></i>Crear Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{-- MODAL: Editar Usuario (Único, poblado via JS)          --}}
+    {{-- ═══════════════════════════════════════════════════════ --}}
+    <button id="openEditModal" data-hs-overlay="#editModal" class="hidden" type="button"></button>
+    <div id="editModal"
+        class="hs-overlay hidden size-full fixed top-0 start-0 z-80 overflow-x-hidden overflow-y-auto pointer-events-none"
+        role="dialog" tabindex="-1" aria-labelledby="editModal-label">
+        <div
+            class="hs-overlay-animation-target hs-overlay-open:scale-100 hs-overlay-open:opacity-100 scale-95 opacity-0 ease-in-out transition-all duration-200 sm:max-w-lg sm:w-full m-3 sm:mx-auto min-h-[calc(100%-56px)] flex items-center">
+            <div class="card w-full flex flex-col border border-default-200 shadow-2xs rounded-xl pointer-events-auto">
+                <div class="card-header">
+                    <h3 id="editModal-label" class="font-semibold text-base text-default-800">
+                        <i class="size-4 me-1 align-text-bottom inline-block" data-lucide="user-cog"></i>
+                        Editar Usuario
+                    </h3>
+                    <button type="button" class="size-5 text-default-800" aria-label="Cerrar"
+                        data-hs-overlay="#editModal">
+                        <i data-lucide="x" class="size-5"></i>
+                    </button>
+                </div>
+                <form id="editForm" novalidate>
+                    <input type="hidden" name="_method" value="PUT">
+                    <div class="card-body space-y-4">
+                        <div>
+                            <label class="inline-block mb-2 text-sm text-default-800 font-medium">Nombre
+                                Completo <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-input" required>
+                            <p class="js-error text-danger text-xs mt-1 hidden" data-field="name"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="inline-block mb-2 text-sm text-default-800 font-medium opacity-60">Email</label>
+                                <input type="email" id="editEmail"
+                                    class="form-input bg-default-100 text-default-500 cursor-not-allowed" disabled>
+                            </div>
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">DNI</label>
+                                <input type="text" name="dni" class="form-input font-mono" maxlength="8">
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="dni"></p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">Rol
+                                    <span class="text-danger">*</span></label>
+                                <select name="role" class="form-input js-role-select">
+                                    <option value="Auxiliar">Auxiliar</option>
+                                    <option value="Docente">Docente PIP</option>
+                                    <option value="Director">Director I.E.</option>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="SuperAdmin">SuperAdmin (UGEL)</option>
+                                </select>
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="role"></p>
+                            </div>
+                            <div>
+                                <label class="inline-block mb-2 text-sm text-default-800 font-medium">Cargo</label>
+                                <input type="text" name="cargo" class="form-input">
+                                <p class="js-error text-danger text-xs mt-1 hidden" data-field="cargo"></p>
+                            </div>
+                        </div>
+                        <div class="js-tenant-group">
+                            <label class="inline-block mb-2 text-sm text-default-800 font-medium">Institución
+                                Educativa</label>
+                            <select name="tenant_id" class="form-input">
+                                <option value="">Sin asignación (UGEL)</option>
+                                @foreach ($tenants as $tenant)
+                                    <option value="{{ $tenant->id }}">{{ $tenant->nombre }}</option>
+                                @endforeach
+                            </select>
+                            <p class="js-error text-danger text-xs mt-1 hidden" data-field="tenant_id"></p>
+                        </div>
+                        <div>
+                            <label class="inline-block mb-2 text-sm text-default-800 font-medium">Nueva
+                                Contraseña</label>
+                            <input type="password" name="password" class="form-input"
+                                placeholder="Dejar vacío para mantener">
+                            <p class="js-error text-danger text-xs mt-1 hidden" data-field="password"></p>
+                        </div>
+                    </div>
+                    <div class="card-footer flex gap-2 justify-end">
+                        <button type="button" class="bg-transparent text-danger btn border-0 hover:bg-danger/10"
+                            data-hs-overlay="#editModal">Cancelar</button>
+                        <button type="submit" class="btn bg-primary text-white js-submit-btn"
+                            data-label="Guardar Cambios">
+                            <i class="size-4 me-1" data-lucide="save"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Formulario oculto para DELETE --}}
+    <form id="deleteForm" method="POST" class="hidden">
+        @csrf @method('DELETE')
+    </form>
+@endsection
+
+@section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+            const BASE_URL = '{{ url('/usuarios') }}';
+
+            /* ──────────────────────────────────────────────── */
+            /*  Filtros avanzados                               */
+            /* ──────────────────────────────────────────────── */
+            function applyFilters() {
+                const params = new URLSearchParams();
+                const search = document.querySelector('#searchForm input[name="search"]').value;
+                const role = document.getElementById('filterRole').value;
+                const status = document.getElementById('filterStatus').value;
+                const tenant = document.getElementById('filterTenant').value;
+                const perPage = document.getElementById('perPageSelect');
+                const perPageVal = perPage ? perPage.value : '';
+
+                if (search) params.set('search', search);
+                if (role) params.set('role', role);
+                if (status) params.set('status', status);
+                if (tenant) params.set('tenant_id', tenant);
+                if (perPageVal && perPageVal !== '10') params.set('per_page', perPageVal);
+
+                window.location = '{{ route('users.index') }}' + (params.toString() ? '?' + params
+                    .toString() : '');
+            }
+
+            document.getElementById('filterRole').addEventListener('change', applyFilters);
+            document.getElementById('filterStatus').addEventListener('change', applyFilters);
+            document.getElementById('filterTenant').addEventListener('change', applyFilters);
+
+            // Per-page selector
+            const perPageEl = document.getElementById('perPageSelect');
+            if (perPageEl) perPageEl.addEventListener('change', applyFilters);
+
+            /* ──────────────────────────────────────────────── */
+            /*  Role ↔ Tenant toggle                           */
+            /* ──────────────────────────────────────────────── */
+            const UGEL_ROLES = ['SuperAdmin', 'Administrador'];
+
+            function setupRoleToggle(form) {
+                const sel = form.querySelector('.js-role-select');
+                const grp = form.querySelector('.js-tenant-group');
+                if (!sel || !grp) return;
+                const toggle = () => {
+                    const hide = UGEL_ROLES.includes(sel.value);
+                    grp.style.display = hide ? 'none' : '';
+                    if (hide) {
+                        const s = grp.querySelector('select');
+                        if (s) s.value = '';
+                    }
+                };
+                sel.addEventListener('change', toggle);
+                toggle();
+            }
+            document.querySelectorAll('#createForm, #editForm').forEach(setupRoleToggle);
+
+            // Limpiar errores y estado al cerrar cualquier modal
+            ['#createModal', '#editModal'].forEach(function(modalId) {
+                const modalEl = document.querySelector(modalId);
+                if (!modalEl) return;
+                modalEl.addEventListener('close.hs.overlay', function() {
+                    const form = this.querySelector('form');
+                    if (form) clearErrors(form);
+                    isSubmitting = false;
+                    // Fallback: limpiar backdrop huérfano
+                    setTimeout(function() {
+                        document.body.classList.remove('overflow-hidden');
+                        document.querySelectorAll(
+                                '[data-hs-overlay-backdrop-template],.hs-overlay-backdrop')
+                            .forEach(function(b) {
+                                b.remove();
+                            });
+                    }, 300);
+                });
+            });
+
+            /* ──────────────────────────────────────────────── */
+            /*  Cerrar modal programáticamente (Preline)       */
+            /* ──────────────────────────────────────────────── */
+            function closeModal(modalId) {
+                const modalEl = document.querySelector(modalId);
+                if (!modalEl) return;
+                const instance = window.HSOverlay && window.HSOverlay.getInstance(modalEl, true);
+                if (instance && instance.element) {
+                    instance.element.close();
+                } else {
+                    // Fallback: cerrar manualmente
+                    modalEl.classList.add('hidden');
+                    modalEl.classList.remove('open');
+                    document.body.classList.remove('overflow-hidden');
+                    // Remover backdrops huérfanos
+                    document.querySelectorAll('[data-hs-overlay-backdrop-template],.hs-overlay-backdrop').forEach(
+                        b => b.remove());
+                }
+            }
+
+            /* ──────────────────────────────────────────────── */
+            /*  Utilidades de formulario                        */
+            /* ──────────────────────────────────────────────── */
+            function clearErrors(form) {
+                form.querySelectorAll('.js-error').forEach(el => {
+                    el.textContent = '';
+                    el.classList.add('hidden');
+                });
+                form.querySelectorAll('.form-input').forEach(el => el.classList.remove(
+                    'border-danger'));
+            }
+
+            function showErrors(form, errors) {
+                Object.entries(errors).forEach(([field, msgs]) => {
+                    const input = form.querySelector('[name="' + field + '"]');
+                    if (input) input.classList.add('border-danger');
+                    const errEl = form.querySelector('.js-error[data-field="' + field + '"]');
+                    if (errEl) {
+                        errEl.textContent = msgs[0];
+                        errEl.classList.remove('hidden');
+                    }
+                });
+            }
+
+            /* ──────────────────────────────────────────────── */
+            /*  AJAX submit — sin doble mensaje                 */
+            /* ──────────────────────────────────────────────── */
+            let isSubmitting = false;
+
+            async function ajaxSubmit(form, url, modalId) {
+                if (isSubmitting) return;
+                isSubmitting = true;
+
+                clearErrors(form);
+                const btn = form.querySelector('.js-submit-btn');
+                const label = btn.dataset.label;
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<i class="size-4 me-1 animate-spin" data-lucide="loader-2"></i>Procesando...';
+
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        }
+                    });
+                    const data = await res.json();
+
+                    if (res.status === 422 && data.errors) {
+                        showErrors(form, data.errors);
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: 'Revise los campos marcados',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="size-4 me-1" data-lucide="save"></i>' +
+                            label;
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                        isSubmitting = false;
+                        return;
+                    }
+
+                    if (!res.ok) throw new Error(data.message || 'Error del servidor');
+
+                    // Cerrar el modal antes de mostrar el éxito
+                    if (modalId) closeModal(modalId);
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Completado',
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 1200
+                    });
+                    window.location.reload();
+
+                } catch (err) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message || 'No se pudo procesar la solicitud.'
+                    });
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="size-4 me-1" data-lucide="save"></i>' + label;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    isSubmitting = false;
+                }
+            }
+
+            /* ──────────────────────────────────────────────── */
+            /*  CREAR                                           */
+            /* ──────────────────────────────────────────────── */
+            document.getElementById('createForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                ajaxSubmit(this, '{{ route('users.store') }}', '#createModal');
+            });
+
+            /* ──────────────────────────────────────────────── */
+            /*  EDITAR: poblar modal y abrir                    */
+            /* ──────────────────────────────────────────────── */
+            let editUserId = null;
+
+            document.querySelectorAll('.js-edit-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const form = document.getElementById('editForm');
+                    editUserId = this.dataset.id;
+
+                    form.querySelector('[name="name"]').value = this.dataset.name || '';
+                    document.getElementById('editEmail').value = this.dataset.email || '';
+                    form.querySelector('[name="dni"]').value = this.dataset.dni || '';
+                    form.querySelector('[name="cargo"]').value = this.dataset.cargo || '';
+                    form.querySelector('[name="role"]').value = this.dataset.role ||
+                        'Auxiliar';
+                    form.querySelector('[name="tenant_id"]').value = this.dataset.tenant ||
+                        '';
+                    form.querySelector('[name="password"]').value = '';
+
+                    clearErrors(form);
+                    setupRoleToggle(form);
+
+                    document.getElementById('openEditModal').click();
+                });
+            });
+
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (!editUserId) return;
+                ajaxSubmit(this, BASE_URL + '/' + editUserId, '#editModal');
+            });
+
+            /* ──────────────────────────────────────────────── */
+            /*  TOGGLE STATUS                                   */
+            /* ──────────────────────────────────────────────── */
+            document.querySelectorAll('.js-toggle-status').forEach(function(checkbox) {
+                checkbox.addEventListener('change', async function() {
+                    const userId = this.dataset.id;
+                    const toggle = this;
+
+                    try {
+                        const res = await fetch(BASE_URL + '/' + userId + '/toggle', {
+                            method: 'PATCH',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': CSRF,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        const data = await res.json();
+
+                        if (!res.ok) throw new Error(data.message || 'Error');
+
+                        // Actualizar el indicador visual del avatar
+                        const row = toggle.closest('tr');
+                        const dot = row.querySelector(
+                            '.absolute.rounded-full.border-2');
+                        if (dot) {
+                            dot.classList.toggle('bg-success', data.is_active);
+                            dot.classList.toggle('bg-danger', !data.is_active);
+                        }
+
+                        // Actualizar opacidad de la fila completa
+                        if (data.is_active) {
+                            row.classList.remove('opacity-50');
+                        } else {
+                            row.classList.add('opacity-50');
+                        }
+
+                        // Animar la fila brevemente
+                        row.classList.add('bg-primary/5');
+                        setTimeout(function() {
+                            row.classList.remove('bg-primary/5');
+                        }, 800);
+
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: data.message,
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    } catch (err) {
+                        toggle.checked = !toggle.checked;
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: err.message,
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                });
+            });
+
+            /* ──────────────────────────────────────────────── */
+            /*  ELIMINAR con confirmación                       */
+            /* ──────────────────────────────────────────────── */
+            document.querySelectorAll('.js-delete-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const userId = this.dataset.id;
+                    const userName = this.dataset.name;
+
+                    Swal.fire({
+                        title: '¿Eliminar a ' + userName + '?',
+                        text: 'Esta acción no se puede deshacer. El usuario perderá acceso permanentemente.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then(function(result) {
+                        if (result.isConfirmed) {
+                            const form = document.getElementById('deleteForm');
+                            form.action = BASE_URL + '/' + userId;
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+@endsection

@@ -1,9 +1,9 @@
-<!-- Theme Settings Offcanvas -->
+<!-- Panel de Configuración del Tema -->
 <div>
     <div class="hs-overlay hs-overlay-open:translate-x-0 hidden bg-card dark:bg-default-100 hs-overlay-open:flex flex-col translate-x-full rtl:-translate-x-full fixed inset-y-0 end-0 bottom-0 transition-all duration-300 transform max-w-sm w-full z-80 overflow-hidden"
         id="theme-customization">
         <div class="min-h-16 flex items-center text-default-600 border-b border-dashed border-default-900/10 px-6 gap-3">
-            <h5 class="text-base grow">Theme Settings</h5>
+            <h5 class="text-base grow">Configuración del Tema</h5>
             <button aria-label="Full Screen" class="btn size-9 rounded-full btn-sm hover:bg-default-150 group"
                 data-toggle="fullscreen" id="fullscreenBtn">
                 <i class="iconify lucide--fullscreen size-5 group-[.fullscreen-active]:hidden"></i>
@@ -17,7 +17,7 @@
         <div class="h-full flex-grow overflow-y-auto" data-simplebar="">
             <div class="divide-y divide-dashed divide-default-200">
                 <div class="p-6">
-                    <h5 class="font-semibold text-sm mb-3">Sidenav View</h5>
+                    <h5 class="font-semibold text-sm mb-3">Vista del Menú Lateral</h5>
                     <div class="grid grid-cols-3 gap-3">
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-default" name="data-sidenav-size" type="radio"
@@ -46,7 +46,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Default</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Normal</div>
                         </div>
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-hover" name="data-sidenav-size" type="radio"
@@ -75,7 +75,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Hover</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Flotante</div>
                         </div>
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-hover-active" name="data-sidenav-size" type="radio"
@@ -107,7 +107,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Hover Active</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Flotante Activo</div>
                         </div>
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-sm" name="data-sidenav-size" type="radio"
@@ -140,7 +140,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Small</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Pequeño</div>
                         </div>
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-md" name="data-sidenav-size" type="radio"
@@ -171,7 +171,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Compact</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Compacto</div>
                         </div>
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-mobile" name="data-sidenav-size" type="radio"
@@ -193,7 +193,7 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Mobile</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Móvil</div>
                         </div>
                         <div class="card-radio">
                             <input class="hidden" id="sidenav-view-hidden" name="data-sidenav-size" type="radio"
@@ -214,57 +214,57 @@
                                     </span>
                                 </span>
                             </label>
-                            <div class="mt-1 text-md font-medium text-center text-default-600"> Hidden</div>
+                            <div class="mt-1 text-md font-medium text-center text-default-600"> Oculto</div>
                         </div>
                     </div>
                 </div>
                 <div class="p-6">
-                    <h5 class="font-semibold text-sm mb-3">Theme Mode</h5>
+                    <h5 class="font-semibold text-sm mb-3">Modo del Tema</h5>
                     <div class="flex gap-2">
                         <div>
                             <input class="hidden" id="layout-color-light" name="data-theme" type="radio"
                                 value="light" />
-                            <label class="form-label btn bg-default-150" for="layout-color-light">Light</label>
+                            <label class="form-label btn bg-default-150" for="layout-color-light">Claro</label>
                         </div>
                         <div>
                             <input class="hidden" id="layout-color-dark" name="data-theme" type="radio"
                                 value="dark" />
-                            <label class="form-label btn bg-default-150" for="layout-color-dark">Dark</label>
+                            <label class="form-label btn bg-default-150" for="layout-color-dark">Oscuro</label>
                         </div>
                         <div>
                             <input class="hidden" id="layout-color-system" name="data-theme" type="radio"
                                 value="system" />
-                            <label class="form-label btn bg-default-150" for="layout-color-system">System</label>
+                            <label class="form-label btn bg-default-150" for="layout-color-system">Sistema</label>
                         </div>
                     </div>
                 </div>
                 <div class="p-6">
-                    <h5 class="font-semibold text-sm mb-3">Direction</h5>
+                    <h5 class="font-semibold text-sm mb-3">Dirección</h5>
                     <div class="flex gap-2">
                         <div>
                             <input class="hidden" id="direction-ltr" name="dir" type="radio"
                                 value="ltr" />
-                            <label class="form-label btn bg-default-150" for="direction-ltr">LTR Mode</label>
+                            <label class="form-label btn bg-default-150" for="direction-ltr">Izq. a Der.</label>
                         </div>
                         <div>
                             <input class="hidden" id="direction-rtl" name="dir" type="radio"
                                 value="rtl" />
-                            <label class="form-label btn bg-default-150" for="direction-rtl">RTL Mode</label>
+                            <label class="form-label btn bg-default-150" for="direction-rtl">Der. a Izq.</label>
                         </div>
                     </div>
                 </div>
                 <div class="p-6">
-                    <h5 class="font-semibold text-sm mb-3">Sidenav Color</h5>
+                    <h5 class="font-semibold text-sm mb-3">Color del Menú Lateral</h5>
                     <div class="flex gap-2">
                         <div>
                             <input class="hidden" id="menu-color-light" name="data-sidenav-color" type="radio"
                                 value="light" />
-                            <label class="form-label btn bg-default-150" for="menu-color-light">Light</label>
+                            <label class="form-label btn bg-default-150" for="menu-color-light">Claro</label>
                         </div>
                         <div>
                             <input class="hidden" id="menu-color-dark" name="data-sidenav-color" type="radio"
                                 value="dark" />
-                            <label class="form-label btn bg-default-150" for="menu-color-dark">Dark</label>
+                            <label class="form-label btn bg-default-150" for="menu-color-dark">Oscuro</label>
                         </div>
                     </div>
                 </div>
@@ -272,9 +272,7 @@
         </div>
         <div class="p-4 flex border-t border-dashed border-default-900/10">
             <div class="flex w-full gap-4">
-                <button class="btn bg-default-150 grow" id="reset-layout" type="button">Reset</button>
-                <a class="btn bg-primary text-white grow" href="https://1.envato.market/tailwick-tailwind"
-                    target="_blank">Buy Now</a>
+                <button class="btn bg-default-150 grow" id="reset-layout" type="button">Restablecer</button>
             </div>
         </div>
     </div>

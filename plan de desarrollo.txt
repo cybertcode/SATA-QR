@@ -12,7 +12,7 @@
 [cite_start]El sistema SATA-QR es una plataforma web centralizada diseñada para el seguimiento en tiempo real de la asistencia estudiantil mediante códigos QR[cite: 24]. [cite_start]Su objetivo principal es actuar como un motor de alerta temprana para identificar a estudiantes en situación de vulnerabilidad (trabajo agrícola, comercial) [cite: 44] [cite_start]y brindar atención oportuna mediante el equipo de la UGEL y aliados estratégicos[cite: 24]. [cite_start]La meta del proyecto es reducir en un 90% el riesgo de deserción escolar[cite: 74].
 
 ### 2. ARQUITECTURA DEL SISTEMA Y STACK TECNOLÓGICO
-* **Framework Backend:** Laravel 12 (PHP) con arquitectura MVC y Clean Code.
+* **Framework Backend:** Laravel 12 (PHP) con arquitectura MVC, Clean Code y **principios SOLID**.
 * **Motor de Base de Datos:** MySQL / PostgreSQL (Normalizada a 3NF, optimizada con índices B-Tree).
 * **Frontend y UI:** Plantilla Tailwick (Tailwind CSS) + Componentes Blade + Alpine.js/Vanilla JS.
 * **Estrategia Multi-Tenant:** `stancl/tenancy` configurado en modo *Single Database*. Garantiza el aislamiento de datos por institución utilizando la llave `tenant_id` sin multiplicar los costos de infraestructura.
