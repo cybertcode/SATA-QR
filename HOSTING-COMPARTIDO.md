@@ -243,6 +243,7 @@ Asegúrate que `/public/.htaccess` existe y contiene:
 **Causa más común:** APP_KEY no generado o permisos incorrectos.
 
 #### Solución Inmediata:
+
 ```bash
 # 1. Generar APP_KEY
 php artisan key:generate
@@ -267,34 +268,41 @@ php artisan migrate:status
 ```
 
 #### Si persiste el error:
+
 - Activar debug temporalmente: `APP_DEBUG=true` en .env
 - Revisar logs: `tail -f storage/logs/laravel.log`
 - Verificar PHP extensions: `php -m | grep -E "(pdo|mysql|mbstring|openssl|tokenizer|ctype|json|fileinfo)"`
 
 ### Error 404 - Not Found
+
 - Document Root apunta a `/public`? Verificar en cPanel
 - `.htaccess` existe en `/public`?
 - `mod_rewrite` habilitado?
 
 ### Error de Base de Datos
+
 - Credenciales correctas en `.env`?
 - Usuario MySQL tiene permisos en la BD?
 - Host es `localhost` (no IP externa)?
 
 ### Blanco Page (White Screen)
+
 - `APP_DEBUG=true` temporalmente para ver errores
 - Verificar PHP version >= 8.2
 - Extensiones PHP instaladas (ver requisitos arriba)
 
 ### Directory Listing (muestra carpetas)
+
 - `.htaccess` no se está leyendo (AllowOverride None)
 - Contactar soporte para habilitar mod_rewrite y AllowOverride
 
 ### Assets no cargan (CSS/JS)
+
 - Ejecutar `npm run build` en servidor?
 - Paths correctos en `public/build/`?
 
 ### Verificar instalación:
+
 ```bash
 # Probar rutas básicas
 curl -I https://informatica.ugelhuacaybamba.edu.pe/
