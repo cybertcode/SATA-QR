@@ -1,6 +1,7 @@
 # SATA-QR — Configuración para Hosting Compartido
 
 ## Requisitos Mínimos
+
 - PHP 8.2 o superior
 - MySQL 5.7+ o MariaDB 10.3+
 - Composer instalado
@@ -9,8 +10,18 @@
 
 ## 1. Descargar el Código
 
+Para subdominio: `https://informatica.ugelhuacaybamba.edu.pe/`
+
 ```bash
-cd /ruta/publica/hosting
+# Conectar vía SSH al hosting
+ssh usuario@ugelhuacaybamba.edu.pe
+
+# Navegar a la carpeta del subdominio
+cd /home/ugelhuacaybamba/public_html/informatica
+# O verificar ruta exacta con:
+pwd
+
+# Clonar el repositorio
 git clone https://github.com/cybertcode/SATA-QR.git .
 git checkout develop
 ```
@@ -38,54 +49,68 @@ php artisan key:generate
 # Editar .env con credenciales de hosting
 ```
 
-### Ejemplo .env para Hosting Compartido:
+### Ejemplo .env para UGEL Huacaybamba (Subdominio informatica):
 
 ```env
 APP_NAME=SATA-QR
 APP_ENV=production
 APP_KEY=base64:xxxxx  # Generado por artisan key:generate
 APP_DEBUG=false
-APP_URL=https://tu-dominio.com
+APP_URL=https://informatica.ugelhuacaybamba.edu.pe
 
-# Base de datos (MySQL/MariaDB)
+# Base de datos (MySQL/MariaDB) - Contactar a soporte del hosting
 DB_CONNECTION=mysql
 DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=nombre_base_datos
-DB_USERNAME=usuario_mysql
-DB_PASSWORD=contraseña_mysql
+DB_DATABASE=ugelhuacaybamba_sata_qr
+DB_USERNAME=ugelhuacaybamba_user
+DB_PASSWORD=contraseña_segura_mysql
 
 # Cache y Session
 CACHE_STORE=file
 SESSION_DRIVER=file
 QUEUE_CONNECTION=database
 
-# Mail (si usas)
+# Mail (Contactar a IT para credenciales SMTP)
 MAIL_MAILER=smtp
-MAIL_HOST=mail.tu-hosting.com
+MAIL_HOST=mail.ugelhuacaybamba.edu.pe
 MAIL_PORT=587
-MAIL_USERNAME=tu-email@dominio.com
-MAIL_PASSWORD=contraseña-email
-MAIL_FROM_ADDRESS=sata@tu-dominio.com
+MAIL_USERNAME=sata@ugelhuacaybamba.edu.pe
+MAIL_PASSWORD=contraseña_email
+MAIL_FROM_ADDRESS=sata@ugelhuacaybamba.edu.pe
+MAIL_FROM_NAME="SATA-QR UGEL Huacaybamba"
 
-# Locale
+# Locale Perú
 APP_LOCALE=es
 APP_FALLBACK_LOCALE=es
+APP_TIMEZONE=America/Lima
 ```
 
-## 4. Crear Base de Datos
+## 4. Crear Base de Datos en cPanel
+
+**El hosting de UGEL Huacaybamba usa cPanel. Seguir estos pasos:**
+
+1. Acceder a cPanel: `https://ugelhuacaybamba.edu.pe:2083/`
+2. Buscar "MySQL Databases" o "Bases de Datos MySQL"
+3. **Crear nueva BD:**
+    - Nombre: `ugelhuacaybamba_sata_qr`
+    - Guardar las credenciales
+4. **Crear usuario MySQL:**
+    - Usuario: `ugelhuacaybamba_user`
+    - Contraseña: Generar contraseña segura (20+ caracteres)
+5. **Asignar usuario a BD:**
+    - Marcar TODAS las casillas de permisos
+    - Click en "Add User to Database"
+
+**Guardar credenciales en .env (paso anterior)**
+
+### Alternativa vía SSH:
 
 ```bash
-# En cPanel o DirectAdmin
-# 1. Crear base de datos MySQL
-# 2. Crear usuario MySQL
-# 3. Asignar usuario a BD con permisos TOTALES
-
-# O vía SSH:
-mysql -u root -p
-CREATE DATABASE sata_qr;
-CREATE USER 'sata_user'@'localhost' IDENTIFIED BY 'contraseña_segura';
-GRANT ALL PRIVILEGES ON sata_qr.* TO 'sata_user'@'localhost';
+mysql -u admin -p
+CREATE DATABASE ugelhuacaybamba_sata_qr;
+CREATE USER 'ugelhuacaybamba_user'@'localhost' IDENTIFIED BY 'contraseña_segura_20caracteres';
+GRANT ALL PRIVILEGES ON ugelhuacaybamba_sata_qr.* TO 'ugelhuacaybamba_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -97,30 +122,53 @@ php artisan migrate --force
 php artisan db:seed --class=DatabaseSeeder
 ```
 
-## 6. Configurar Web Root (IMPORTANTE)
+## 6. Configurar Web Root en cPanel (CRÍTICO)
 
-El documento root debe apuntar a la carpeta **`public/`** del proyecto.
+**Subdominio:** `https://informatica.ugelhuacaybamba.edu.pe/`
 
-### En cPanel:
-1. Document Root: `/public_html/sata/public`
-2. Asegurar que StaticHTML está deshabilitado
+### Pasos en cPanel:
 
-### En DirectAdmin:
-1. Modificar domain.conf
-2. Apuntar a `/home/usuario/domains/dominio.com/public`
+1. Acceder a cPanel: `https://ugelhuacaybamba.edu.pe:2083/`
+2. Ir a **"Addons Domains"** o **"Dominios Adicionales"**
+3. Buscar `informatica.ugelhuacaybamba.edu.pe` (debe estar pre-creado ya)
+4. Editar y configurar:
+   - **Document Root:** `/home/ugelhuacaybamba/public_html/informatica/public`
+   - (IMPORTANTE: termina en `/public`, NO en la raíz del proyecto)
+5. Guardar cambios
+6. **Esperar 5-10 minutos** para que replique
 
-### Estructura esperada:
+### Estructura correcta en servidor:
+
 ```
-/home/usuario/domains/dominio.com/
-├── .env (fuera de public)
-├── public/              ← Document Root apunta aquí
-│   ├── index.php
-│   ├── .htaccess        ← Necesario para rewrites
-│   ├── build/
-│   └── images/
+/home/ugelhuacaybamba/public_html/informatica/
+├── .env                    ← NO accesible públicamente ✅
+├── .gitignore
+├── composer.json
+├── artisan
 ├── app/
 ├── routes/
-└── resources/
+├── resources/
+├── database/
+├── public/                 ← ← ← DOCUMENT ROOT APUNTA AQUÍ
+│   ├── index.php
+│   ├── .htaccess           ← NECESARIO para rewrites
+│   ├── build/              ← Assets compilados
+│   ├── images/
+│   └── js/
+├── storage/                ← Necesita permisos 775
+├── bootstrap/              ← Necesita permisos 775
+└── vendor/
+```
+
+### Verificar que funciona:
+```bash
+# Abrir en navegador:
+https://informatica.ugelhuacaybamba.edu.pe/
+
+# Debe mostrar:
+# ✅ Página de Login de SATA-QR (si está migrada)
+# ✅ Ó laravel welcome page (si es primera vez)
+# ❌ NUNCA: "Directory Listing" / "Index Of" / Error 404
 ```
 
 ## 7. Permisos de Carpetas (CRÍTICO)
@@ -187,21 +235,25 @@ php artisan cache:clear
 ## 11. Solucionar Problemas Comunes
 
 ### ❌ Error 500 - Check Storage/logs
+
 ```bash
 tail -f storage/logs/laravel.log
 ```
 
 ### ❌ Blank Page / No Connection
+
 - Verificar APP_DEBUG=false
 - Verificar carpetas de storage con permisos 775
 - Verificar .htaccess está presente
 
 ### ❌ Errores de Base de Datos
+
 - Verificar credenciales en .env
 - Verificar servidor MySQL está corriendo
 - Ejecutar: `php artisan migrate:fresh --seed`
 
 ### ❌ Problemas de Almacenamiento
+
 ```bash
 php artisan storage:link  # Si no existe symbolic link
 chmod 755 public/storage
