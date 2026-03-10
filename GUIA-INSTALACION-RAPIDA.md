@@ -1,7 +1,8 @@
 # SATA-QR — Guía de Instalación Rápida
+
 ## Subdominio: https://informatica.ugelhuacaybamba.edu.pe/
 
-> **Última actualización**: 10 de marzo de 2026  
+> **Última actualización**: 10 de marzo de 2026
 > **Estado**: Production-Ready ✅
 
 ---
@@ -50,17 +51,17 @@ npm install && npm run build
 
 1. Buscar "**MySQL Databases**" en cPanel
 2. Click en "**Create New Database**"
-   - Name: `ugelhuacaybamba_sata_qr`
-   - Click "Create Database"
+    - Name: `ugelhuacaybamba_sata_qr`
+    - Click "Create Database"
 3. Click en "**MySQL Users**"
-   - Username: `ugelhuacaybamba_user`
-   - Password: Generar 20+ caracteres (copiar)
-   - Click "Create User"
+    - Username: `ugelhuacaybamba_user`
+    - Password: Generar 20+ caracteres (copiar)
+    - Click "Create User"
 4. Buscar "**Add User to Database**"
-   - Database: `ugelhuacaybamba_sata_qr`
-   - User: `ugelhuacaybamba_user`
-   - Marcar TODAS las casillas
-   - Click "Add"
+    - Database: `ugelhuacaybamba_sata_qr`
+    - User: `ugelhuacaybamba_user`
+    - Marcar TODAS las casillas
+    - Click "Add"
 
 ✅ **Guardar credenciales para el paso 3**
 
@@ -150,13 +151,16 @@ https://informatica.ugelhuacaybamba.edu.pe/
 ### Posibles pantallas al abrir:
 
 ✅ **Pantalla de Login** (página principal de SATA-QR)
+
 - Usuario: `superadmin@sata.test`
 - Contraseña: `password`
 
 ✅ **Laravel Welcome Page** (página por defecto si es primera vez)
+
 - Indica que Laravel está corriendo
 
 ❌ **Nunca debería ver:**
+
 - "Directory Listing" / "Index Of"
 - Error 404 / 500
 - Blank page (check storage/logs/laravel.log)
@@ -166,6 +170,7 @@ https://informatica.ugelhuacaybamba.edu.pe/
 ## 🚨 Si hay problemas:
 
 ### Error: "Connection refused" a MySQL
+
 ```bash
 # Verificar credenciales en .env
 grep DB_ .env
@@ -178,6 +183,7 @@ mysql -h localhost -u ugelhuacaybamba_user -p
 ```
 
 ### Error: "Migraciones fallaron"
+
 ```bash
 # Ver qué pasó:
 php artisan migrate --force 2>&1
@@ -190,6 +196,7 @@ php artisan migrate --force 2>&1
 ```
 
 ### Blank Page / Error 500
+
 ```bash
 # Ver logs
 tail -f storage/logs/laravel.log
@@ -221,6 +228,7 @@ php artisan config:clear
 ## 📞 Contacto IT UGEL
 
 **Para credenciales que necesitarás:**
+
 - Credenciales SMTP (mail.ugelhuacaybamba.edu.pe)
 - Acceso SSH/cPanel
 - Ruta exacta de carpetas en el servidor
@@ -228,6 +236,7 @@ php artisan config:clear
 ---
 
 **¡Listo! 🚀 SATA-QR debería estar corriendo en:**
+
 ```
 https://informatica.ugelhuacaybamba.edu.pe/
 ```

@@ -132,8 +132,8 @@ php artisan db:seed --class=DatabaseSeeder
 2. Ir a **"Addons Domains"** o **"Dominios Adicionales"**
 3. Buscar `informatica.ugelhuacaybamba.edu.pe` (debe estar pre-creado ya)
 4. Editar y configurar:
-   - **Document Root:** `/home/ugelhuacaybamba/public_html/informatica/public`
-   - (IMPORTANTE: termina en `/public`, NO en la raíz del proyecto)
+    - **Document Root:** `/home/ugelhuacaybamba/public_html/informatica/public`
+    - (IMPORTANTE: termina en `/public`, NO en la raíz del proyecto)
 5. Guardar cambios
 6. **Esperar 5-10 minutos** para que replique
 
@@ -161,6 +161,7 @@ php artisan db:seed --class=DatabaseSeeder
 ```
 
 ### Verificar que funciona:
+
 ```bash
 # Abrir en navegador:
 https://informatica.ugelhuacaybamba.edu.pe/
