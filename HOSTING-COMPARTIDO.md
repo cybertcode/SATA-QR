@@ -222,46 +222,53 @@ Asegúrate que `/public/.htaccess` existe y contiene:
 ### Si mod_rewrite no funciona:
 
 1. Verificar que Apache tenga `mod_rewrite` habilitado:
-   ```bash
-   apachectl -M | grep rewrite
-   # Debe mostrar: rewrite_module (shared)
-   ```
+
+    ```bash
+    apachectl -M | grep rewrite
+    # Debe mostrar: rewrite_module (shared)
+    ```
 
 2. Si no está habilitado, contactar al soporte del hosting para activarlo.
 
 3. Alternativa: Si el hosting no permite mod_rewrite, usar configuración sin rewrites (menos recomendado):
-   ```apache
-   DirectoryIndex index.php
-   Options -Indexes
-   ```
+    ```apache
+    DirectoryIndex index.php
+    Options -Indexes
+    ```
 
 ## 9. Troubleshooting Común
 
 ### Error 500 - Internal Server Error
+
 - Verificar `.env` existe y APP_KEY está generado
 - Permisos de carpetas: `storage` y `bootstrap/cache` deben ser 775
 - Logs en `storage/logs/laravel.log`
 
 ### Error 404 - Not Found
+
 - Document Root apunta a `/public`? Verificar en cPanel
 - `.htaccess` existe en `/public`?
 - `mod_rewrite` habilitado?
 
 ### Error de Base de Datos
+
 - Credenciales correctas en `.env`?
 - Usuario MySQL tiene permisos en la BD?
 - Host es `localhost` (no IP externa)?
 
 ### Blanco Page (White Screen)
+
 - `APP_DEBUG=true` temporalmente para ver errores
 - Verificar PHP version >= 8.2
 - Extensiones PHP instaladas (ver requisitos arriba)
 
 ### Assets no cargan (CSS/JS)
+
 - Ejecutar `npm run build` en servidor?
 - Paths correctos en `public/build/`?
 
 ### Verificar instalación:
+
 ```bash
 # Probar rutas básicas
 curl -I https://informatica.ugelhuacaybamba.edu.pe/
@@ -291,6 +298,7 @@ Luego, subir el proyecto a `/home/ugelhuacaybamba/public_html/informatica/`
 **IMPORTANTE:** El Document Root debe apuntar a la carpeta `public` dentro del proyecto Laravel, NO a la raíz del proyecto.
 
 ### Estructura final correcta:
+
 ```
 /home/ugelhuacaybamba/public_html/informatica/
 ├── app/
@@ -324,21 +332,23 @@ Luego, subir el proyecto a `/home/ugelhuacaybamba/public_html/informatica/`
 ## Contacto de Soporte
 
 Para problemas específicos del hosting UGEL:
+
 - Contactar al área de Informática y Sistemas
 - Proporcionar URL exacta del error
 - Incluir logs relevantes
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-    RewriteCond %{http_host} ^www\.(.*)$ [NC]
-    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule ._ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+  RewriteCond %{http_host} ^www\.(._)$ [NC]
+  RewriteRule ^(.\*)$ https://%1/$1 [R=301,L]
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
-</IfModule>
-```
+  RewriteRule ^ %1 [L,R=301]
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.php [L]
+  </IfModule>
+
+````
 
 ## 9. Optimizaciones para Producción
 
@@ -354,7 +364,7 @@ php artisan view:cache
 
 # Limpiar cachés
 php artisan cache:clear
-```
+````
 
 ## 10. SSL/HTTPS (OBLIGATORIO)
 
