@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Sata\Student;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
+use App\Imports\SiagieStudentImport;
+use App\Models\Tenant;
 use App\Services\StudentImportService;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SiagieController extends Controller
 {
@@ -18,29 +20,53 @@ class SiagieController extends Controller
 
     public function import()
     {
-        return view('sata.students.import');
+        $user = auth()->user();
+        $instituciones = $user->isSuperAdmin()
+            ? Tenant::orderBy('nombre')->get()
+            : collect();
+
+        return view('sata.students.import', compact('instituciones'));
     }
 
     public function process(Request $request)
     {
-        $request->validate([
-            'archivo_siagie' => 'required|file|max:5120',
-            'anio_lectivo_id' => 'required|exists:anios_lectivos,id'
-        ]);
+        $user = auth()->user();
 
-        // Simulación de lectura de Excel para el demo funcional
-        $dataSimulada = [
-            ['dni' => '77889900', 'nombres' => 'MARIA', 'paterno' => 'ROJAS', 'materno' => 'LUNA', 'genero' => 'F', 'grado' => '3', 'seccion' => 'B'],
-            ['dni' => '11223344', 'nombres' => 'CARLOS', 'paterno' => 'SOTO', 'materno' => 'MEZA', 'genero' => 'M', 'grado' => '3', 'seccion' => 'B'],
+        $rules = [
+            'archivo_siagie' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+            'anio_lectivo_id' => 'required|exists:anios_lectivos,id',
+            'nivel' => 'required|in:Primaria,Secundaria',
         ];
 
+        // SuperAdmin debe seleccionar la IE destino
+        if ($user->isSuperAdmin()) {
+            $rules['tenant_id'] = 'required|exists:tenants,id';
+        }
+
+        $request->validate($rules);
+
+        $tenantId = $user->isSuperAdmin()
+            ? $request->tenant_id
+            : $user->tenant_id;
+
+        // Leer Excel real con Maatwebsite\Excel
+        $import = new SiagieStudentImport();
+        Excel::import($import, $request->file('archivo_siagie'));
+
+        $rows = $import->getRows();
+
+        if (empty($rows)) {
+            return back()->withErrors(['archivo_siagie' => 'El archivo no contiene datos válidos.']);
+        }
+
         $count = $this->importService->import(
-            $dataSimulada, 
-            auth()->user()->tenant_id, 
+            $rows,
+            $tenantId,
             $request->anio_lectivo_id,
-            'Secundaria' // Detectado del Excel en producción
+            $request->nivel
         );
 
-        return redirect()->route('students.index')->with('success', "Se han procesado $count estudiantes correctamente.");
+        return redirect()->route('students.index')
+            ->with('success', "Se han procesado {$count} estudiantes correctamente desde el archivo SIAGIE.");
     }
 }

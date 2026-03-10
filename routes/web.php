@@ -9,6 +9,7 @@ use App\Http\Controllers\Sata\Student\SiagieController;
 use App\Http\Controllers\Sata\Alert\AlertController;
 use App\Http\Controllers\Sata\Alert\InterventionController;
 use App\Http\Controllers\Sata\Institution\SettingsController;
+use App\Http\Controllers\Sata\Institution\InstitutionController;
 use App\Http\Controllers\Sata\Attendance\ScannerController;
 use App\Http\Controllers\Sata\User\UserController;
 use App\Http\Controllers\Sata\User\RoleController;
@@ -63,15 +64,21 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/configuracion-general', [ConfiguracionGeneralController::class, 'index'])->name('config.general');
     });
 
+    // ─── MÓDULO INSTITUCIONES (Solo SuperAdmin) ───
+    Route::middleware('role:SuperAdmin')->group(function () {
+        Route::get('/instituciones', [InstitutionController::class, 'index'])->name('institutions.index');
+        Route::get('/instituciones/{tenant}/carnets', [StudentController::class, 'massQr'])->name('institutions.carnets');
+    });
+
     // ─── MÓDULO INSTITUCIÓN (SuperAdmin + Director) ───
     Route::middleware('role:SuperAdmin,Director')->group(function () {
         Route::get('/institucion/configuracion', [SettingsController::class, 'index'])->name('institution.settings');
-        Route::post('/institucion/cierre-asistencia', [SettingsController::class, 'closeDay'])->name('institution.close-day');
     });
 
     // ─── MÓDULO ALUMNADO (SuperAdmin + Director + Docente) ───
     Route::middleware('role:SuperAdmin,Director,Docente')->group(function () {
         Route::get('/estudiantes', [StudentController::class, 'index'])->name('students.index');
+        Route::get('/estudiantes/exportar', [StudentController::class, 'export'])->name('students.export');
         Route::get('/estudiantes/siagie', [SiagieController::class, 'import'])->name('students.import');
         Route::post('/estudiantes/siagie', [SiagieController::class, 'process'])->name('students.import.process');
         Route::get('/estudiantes/{id}', [StudentController::class, 'show'])->name('students.show');

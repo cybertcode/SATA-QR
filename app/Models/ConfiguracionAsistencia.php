@@ -13,6 +13,7 @@ class ConfiguracionAsistencia extends Model
         'tenant_id',
         'hora_entrada_regular',
         'minutos_tolerancia',
+        'dias_inasistencia_riesgo',
     ];
 
     /**

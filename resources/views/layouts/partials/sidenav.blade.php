@@ -57,20 +57,28 @@
             {{-- GESTIÓN (ACORDEÓN PROFESIONAL) --}}
             <li class="menu-title"><span>Administración</span></li>
 
-            <li class="hs-accordion menu-item {{ Route::is(['institution.*']) ? 'active' : '' }}">
-                <a class="hs-accordion-toggle menu-link {{ Route::is(['institution.*']) ? 'active' : '' }}"
+            <li class="hs-accordion menu-item {{ Route::is(['institution.*', 'institutions.*']) ? 'active' : '' }}">
+                <a class="hs-accordion-toggle menu-link {{ Route::is(['institution.*', 'institutions.*']) ? 'active' : '' }}"
                     href="javascript:void(0)">
                     <span class="menu-icon"><i data-lucide="school"></i></span>
                     <span class="menu-text"> Institución </span>
                     <span class="menu-arrow"></span>
                 </a>
                 <div
-                    class="hs-accordion-content w-full overflow-hidden {{ Route::is(['institution.*']) ? '' : 'hidden' }} transition-[height] duration-300">
+                    class="hs-accordion-content w-full overflow-hidden {{ Route::is(['institution.*', 'institutions.*']) ? '' : 'hidden' }} transition-[height] duration-300">
                     <ul class="sub-menu">
+                        @if ($user->isSuperAdmin())
+                            <li class="menu-item">
+                                <a class="menu-link {{ Route::is('institutions.index') ? 'active' : '' }}"
+                                    href="{{ route('institutions.index') }}">
+                                    <span class="menu-text">Listado de I.E.</span>
+                                </a>
+                            </li>
+                        @endif
                         <li class="menu-item">
                             <a class="menu-link {{ Route::is('institution.settings') ? 'active' : '' }}"
                                 href="{{ route('institution.settings') }}">
-                                <span class="menu-text">Configuración Horarios</span>
+                                <span class="menu-text">Configuración I.E.</span>
                             </a>
                         </li>
                     </ul>
