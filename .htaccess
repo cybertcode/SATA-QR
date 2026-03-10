@@ -1,11 +1,37 @@
 <IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^$ public/index.php [L]
-  RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
-  RewriteRule (^\.|/\.) - [F]
-  <Files .env>
-     order allow,deny
-     Deny from all
-  </Files>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+    RewriteBase /
+
+    # Deny access to .env files
+    RewriteRule "^\.env" - [F]
+
+    # Deny access to vendor and storage directories
+    RewriteRule "^vendor/" - [F]
+    RewriteRule "^storage/" - [F]
+    RewriteRule "^bootstrap/" - [F]
+
+    # Handle public folder - rewrite requests to public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(?!public/)(.*)$ public/$1 [L]
+
+    # From public folder - rewrite to public/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)?$ public/index.php [L]
+
+    # Security Headers
+    <FilesMatch "\.(env|json|lock|md)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    <Files .env>
+        order allow,deny
+        deny from all
+    </Files>
 </IfModule>
