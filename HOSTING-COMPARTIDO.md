@@ -198,18 +198,157 @@ Asegúrate que `/public/.htaccess` existe y contiene:
     </IfModule>
 
     RewriteEngine On
+
+    # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-    RewriteCond %{http_host} ^www\.(.*)$ [NC]
-    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
 ```
+
+### Si mod_rewrite no funciona:
+
+1. Verificar que Apache tenga `mod_rewrite` habilitado:
+
+    ```bash
+    apachectl -M | grep rewrite
+    # Debe mostrar: rewrite_module (shared)
+    ```
+
+2. Si no está habilitado, contactar al soporte del hosting para activarlo.
+
+3. Alternativa: Si el hosting no permite mod_rewrite, usar configuración sin rewrites (menos recomendado):
+    ```apache
+    DirectoryIndex index.php
+    Options -Indexes
+    ```
+
+## 9. Troubleshooting Común
+
+### Error 500 - Internal Server Error
+
+- Verificar `.env` existe y APP_KEY está generado
+- Permisos de carpetas: `storage` y `bootstrap/cache` deben ser 775
+- Logs en `storage/logs/laravel.log`
+
+### Error 404 - Not Found
+
+- Document Root apunta a `/public`? Verificar en cPanel
+- `.htaccess` existe en `/public`?
+- `mod_rewrite` habilitado?
+
+### Error de Base de Datos
+
+- Credenciales correctas en `.env`?
+- Usuario MySQL tiene permisos en la BD?
+- Host es `localhost` (no IP externa)?
+
+### Blanco Page (White Screen)
+
+- `APP_DEBUG=true` temporalmente para ver errores
+- Verificar PHP version >= 8.2
+- Extensiones PHP instaladas (ver requisitos arriba)
+
+### Assets no cargan (CSS/JS)
+
+- Ejecutar `npm run build` en servidor?
+- Paths correctos en `public/build/`?
+
+### Verificar instalación:
+
+```bash
+# Probar rutas básicas
+curl -I https://informatica.ugelhuacaybamba.edu.pe/
+# Debe retornar 200 OK
+
+# Probar PHP
+php -v
+# Debe ser 8.2+
+
+# Probar Laravel
+php artisan --version
+# Debe mostrar Laravel Framework 12.x.x
+```
+
+## 10. Configuración de Subdominio en cPanel (Detallada)
+
+Si el subdominio no existe aún:
+
+1. En cPanel → **Subdomains**
+2. **Subdomain:** `informatica`
+3. **Domain:** `ugelhuacaybamba.edu.pe`
+4. **Document Root:** `/home/ugelhuacaybamba/public_html/informatica`
+5. Crear
+
+Luego, subir el proyecto a `/home/ugelhuacaybamba/public_html/informatica/`
+
+**IMPORTANTE:** El Document Root debe apuntar a la carpeta `public` dentro del proyecto Laravel, NO a la raíz del proyecto.
+
+### Estructura final correcta:
+
+```
+/home/ugelhuacaybamba/public_html/informatica/
+├── app/
+├── config/
+├── database/
+├── public/          ← Document Root apunta aquí
+│   ├── index.php
+│   ├── .htaccess
+│   └── ...
+├── resources/
+├── routes/
+├── storage/
+├── vendor/
+├── .env
+├── composer.json
+└── artisan
+```
+
+## 11. Configuración de SSL (Opcional pero Recomendado)
+
+1. En cPanel → **SSL/TLS Status**
+2. Buscar `informatica.ugelhuacaybamba.edu.pe`
+3. **Run AutoSSL** para certificado gratuito Let's Encrypt
+
+## 12. Monitoreo y Logs
+
+- Logs de Laravel: `storage/logs/laravel.log`
+- Logs de Apache: `/usr/local/apache/logs/error_log`
+- Verificar con: `tail -f storage/logs/laravel.log`
+
+## Contacto de Soporte
+
+Para problemas específicos del hosting UGEL:
+
+- Contactar al área de Informática y Sistemas
+- Proporcionar URL exacta del error
+- Incluir logs relevantes
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule ._ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+  RewriteCond %{http_host} ^www\.(._)$ [NC]
+  RewriteRule ^(.\*)$ https://%1/$1 [R=301,L]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+  RewriteRule ^ %1 [L,R=301]
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.php [L]
+  </IfModule>
+
+````
 
 ## 9. Optimizaciones para Producción
 
@@ -225,7 +364,7 @@ php artisan view:cache
 
 # Limpiar cachés
 php artisan cache:clear
-```
+````
 
 ## 10. SSL/HTTPS (OBLIGATORIO)
 
