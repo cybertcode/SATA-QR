@@ -1,5 +1,14 @@
 # SATA-QR — Configuración para Hosting Compartido
 
+## 📚 Documentación Relacionada
+
+- **[HOSTING-COMPARTIDO-COMPLETO.md](HOSTING-COMPARTIDO-COMPLETO.md)** - Guía exhaustiva con todas las opciones
+- **[HTACCESS-CONFIGS.md](HTACCESS-CONFIGS.md)** - 10 configuraciones de .htaccess listas para usar
+- **[DIAGNOSTIC-HOSTING.md](DIAGNOSTIC-HOSTING.md)** - Scripts y comandos para diagnosticar problemas
+- **[SOLUTION-ALTERNATIVE-STRUCTURE.md](SOLUTION-ALTERNATIVE-STRUCTURE.md)** - Cómo trabajar cuando Document Root está en raíz
+
+---
+
 ## Requisitos Mínimos
 
 - PHP 8.2 o superior
@@ -11,6 +20,9 @@
 ## 1. Descargar el Código
 
 Para subdominio: `https://informatica.ugelhuacaybamba.edu.pe/`
+
+> **⚠️ SI TIENES PROBLEMAS:** Revisa [DIAGNOSTICO.md](DIAGNOSTICO.md) para diagnóstico completo
+> **ALTERNATIVAS DE .HTACCESS:** Ver [HTACCESS-ALTERNATIVAS.md](HTACCESS-ALTERNATIVAS.md)
 
 ```bash
 # Conectar vía SSH al hosting
