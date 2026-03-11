@@ -20,6 +20,7 @@ php -m
 ```
 
 **Esperado:**
+
 - PHP 8.2 o superior
 - Extensiones: pdo, pdo_mysql, mbstring, openssl, tokenizer, ctype, json, fileinfo, bcmath
 
@@ -36,6 +37,7 @@ apache2ctl -M | grep rewrite
 ```
 
 **Esperado:**
+
 ```
 rewrite_module (shared)
 ```
@@ -60,6 +62,7 @@ tree -L 2 (o si no tienes tree: find . -maxdepth 2 -type f | head -20)
 ```
 
 **Esperado:**
+
 - `.env` debe existir (si no, renombra `.env.production` a `.env`)
 - `.htaccess` en raíz
 - `public/.htaccess` también debe existir
@@ -84,11 +87,13 @@ grep "DB_" .env
 ```
 
 **Esperado:**
+
 - `APP_KEY=base64:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` (NO vacío)
 - `APP_DEBUG=true` (temporalmente para diagnosticar)
-- DB_* con credenciales correctas
+- DB\_\* con credenciales correctas
 
 Si APP_KEY está vacío:
+
 ```bash
 php artisan key:generate
 ```
@@ -192,7 +197,9 @@ curl https://informatica.ugelhuacaybamba.edu.pe/.env
 ## RESUMEN DE PROBLEMAS Y SOLUCIONES
 
 ### Problema: Error 500 al acceder
+
 **Diagnosticar:**
+
 ```bash
 # 1. Ver el error específico
 grep "ERROR" storage/logs/laravel.log | tail -5
@@ -210,7 +217,9 @@ chmod -R 775 storage bootstrap
 ```
 
 ### Problema: Error 404 al acceder
+
 **Diagnosticar:**
+
 ```bash
 # 1. Verificar que public/.htaccess existe
 ls -la public/.htaccess
@@ -226,7 +235,9 @@ apachectl -M | grep rewrite
 ```
 
 ### Problema: Directory Listing (muestra carpetas)
+
 **Solución:**
+
 ```bash
 # Significa que .htaccess no se está leyendo
 # Contactar soporte del hosting para:
@@ -235,7 +246,9 @@ apachectl -M | grep rewrite
 ```
 
 ### Problema: .env es visible en el navegador
+
 **Solución inmediata:**
+
 ```apache
 # En .htaccess de raíz (ya incluido), pero verificar:
 <Files .env>
@@ -249,12 +262,14 @@ apachectl -M | grep rewrite
 ## COMPARACIÓN CON WORDPRESS (por qué WordPress funciona)
 
 WordPress funciona porque:
+
 - ✅ Tiene un `.htaccess` más simple
 - ✅ No requiere generar clave criptográfica
 - ✅ Escribe en base de datos sin necesitar migraciones previas
 - ✅ Sus archivos ejecutables se encuentran directamente en el Document Root
 
 Laravel requiere:
+
 - 🔴 APP_KEY generado (cripto)
 - 🔴 Migraciones de BD ejecutadas
 - 🔴 public/ como Document Root o reescritura inteligente
@@ -278,6 +293,7 @@ Laravel requiere:
 ```
 
 Si TODOS pasan ✓ pero sigue sin funcionar, ejecutar:
+
 ```bash
 php artisan migrate --force
 php artisan db:seed --class=DatabaseSeeder

@@ -113,6 +113,7 @@ Según el tipo de problema, usa una de estas configuraciones.
 Entonces ELIMINA el .htaccess de raíz y usa SOLO el de public/.htaccess
 
 **public/.htaccess (contenido):**
+
 ```apache
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
@@ -159,30 +160,30 @@ Options -Indexes
 
 1. **Edita `.htaccess` en raíz** con una de las opciones arriba
 2. **Borra logs viejos** para evitar confusión:
-   ```bash
-   > storage/logs/laravel.log
-   ```
+    ```bash
+    > storage/logs/laravel.log
+    ```
 3. **Accede a la URL:**
-   ```
-   https://informatica.ugelhuacaybamba.edu.pe/
-   ```
+    ```
+    https://informatica.ugelhuacaybamba.edu.pe/
+    ```
 4. **Revisa los logs:**
-   ```bash
-   tail -20 storage/logs/laravel.log
-   ```
+    ```bash
+    tail -20 storage/logs/laravel.log
+    ```
 
 ---
 
 ## COMPARACIÓN DE OPCIONES
 
-| Opción | Complejidad | Seguridad | Mejor Para |
-|--------|-------------|----------|-----------|
-| 1 | Alta | Máxima | Hosting estándar |
-| 2 | Baja | Media | Hosting muy restrictivo |
-| 3 | Media | Alta | Problemas con query strings |
-| 4 | Media | Alta | Testing |
-| 5 | Baja | Alta | Si Document Root = public/ |
-| 6 | Muy Baja | Baja | Emergencia |
+| Opción | Complejidad | Seguridad | Mejor Para                  |
+| ------ | ----------- | --------- | --------------------------- |
+| 1      | Alta        | Máxima    | Hosting estándar            |
+| 2      | Baja        | Media     | Hosting muy restrictivo     |
+| 3      | Media       | Alta      | Problemas con query strings |
+| 4      | Media       | Alta      | Testing                     |
+| 5      | Baja        | Alta      | Si Document Root = public/  |
+| 6      | Muy Baja    | Baja      | Emergencia                  |
 
 ---
 
@@ -221,6 +222,7 @@ cat /home/ugelhuacaybamba/public_html/wordpress/.htaccess
 ```
 
 La diferencia principal:
+
 - **WordPress:** Reescribe todo a `index.php`
 - **Laravel:** Reescribe a `public/index.php` (si raíz es Document Root)
 
@@ -231,14 +233,14 @@ La diferencia principal:
 Si después de probar todas las opciones sigue sin funcionar:
 
 1. **Contactar soporte del hosting y pedir:**
-   - Confirmar que mod_rewrite está habilitado
-   - Confirmar que AllowOverride All está configurado
-   - Confirmar versión de PHP (debe ser 8.2 o superior)
+    - Confirmar que mod_rewrite está habilitado
+    - Confirmar que AllowOverride All está configurado
+    - Confirmar versión de PHP (debe ser 8.2 o superior)
 
 2. **Mientras tanto, usar OPCIÓN 5:**
-   - Pedir a soporte que cambie Document Root a `/public`
-   - Así Laravel funciona sin necesidad de .htaccess en raíz
+    - Pedir a soporte que cambie Document Root a `/public`
+    - Así Laravel funciona sin necesidad de .htaccess en raíz
 
 3. **O usar WORKAROUND:**
-   - Crear symlink desde `index.php` a `public/index.php`
-   - (Aunque esto no es recomendado)
+    - Crear symlink desde `index.php` a `public/index.php`
+    - (Aunque esto no es recomendado)
